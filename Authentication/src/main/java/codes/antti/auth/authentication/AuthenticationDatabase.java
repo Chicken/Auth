@@ -8,11 +8,15 @@ import java.security.SecureRandom;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Random;
 
 public class AuthenticationDatabase extends Database {
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
+    private final HashMap<String, Session> sessionCache = new HashMap<>();
+    private final HashMap<String, Long> sessionCacheExpiry = new HashMap<>();
+    private static final long CACHE_SECONDS = 15;
 
     public AuthenticationDatabase(@NotNull AuthenticationPlugin plugin) throws SQLException {
         super(plugin.getDataFolder().getAbsolutePath() + "/db.sqlite");
@@ -108,7 +112,14 @@ public class AuthenticationDatabase extends Database {
 
     @Nullable
     public Session getSession(@NotNull String sessionId) throws SQLException {
-        // TODO: this should probably be cached in memory
+        Session cached = sessionCache.get(sessionId);
+        Long expiry = sessionCacheExpiry.get(sessionId);
+        if (expiry != null && expiry < System.currentTimeMillis()) {
+            sessionCache.remove(sessionId);
+            sessionCacheExpiry.remove(sessionId);
+            cached = null;
+        }
+        if (cached != null) return cached;
         ResultSet res = this.query("SELECT player_uuid, auth_token, expires FROM sessions WHERE session_id = ?", sessionId);
         if (!res.next()) return null;
         long expires = res.getLong("expires");
@@ -118,7 +129,10 @@ public class AuthenticationDatabase extends Database {
             this.deleteSession(sessionId);
             return null;
         }
-        return new Session(sessionId, authToken, expires, uuid);
+        Session session = new Session(sessionId, authToken, expires, uuid);
+        sessionCache.put(sessionId, session);
+        sessionCacheExpiry.put(sessionId, System.currentTimeMillis() + CACHE_SECONDS * 1000);
+        return session;
     }
 
     public void deleteSession(@NotNull String sessionId) throws SQLException {

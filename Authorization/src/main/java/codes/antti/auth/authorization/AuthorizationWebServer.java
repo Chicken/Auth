@@ -5,27 +5,27 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.model.user.UserManager;
-import net.luckperms.api.node.Node;
-import net.luckperms.api.query.QueryOptions;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class AuthorizationWebServer {
     private final WebServer http;
+    private final UserManager userManager;
     private String unauthorizedPage = null;
     private final HashMap<String, Boolean> permissionCache = new HashMap<>();
     private final HashMap<String, Long> permissionCacheExpiry = new HashMap<>();
     private static final long CACHE_SECONDS = 15;
+
     public AuthorizationWebServer(AuthorizationPlugin plugin) throws IOException {
         FileConfiguration config = plugin.getConfig();
         this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8300));
         LuckPerms lp = LuckPermsProvider.get();
-        UserManager userManager = lp.getUserManager();
+        this.userManager = lp.getUserManager();
 
         this.http.handle("/auth", request -> {
             String host = request.httpExchange.getRequestHeaders().get("host").get(0);
@@ -35,39 +35,15 @@ public class AuthorizationWebServer {
                 request.respond(403);
                 return;
             }
-            Boolean cached = permissionCache.get(playerUuid);
-            Long expiry = permissionCacheExpiry.get(playerUuid);
-            if (expiry != null && expiry < System.currentTimeMillis()) {
-                permissionCache.remove(playerUuid);
-                permissionCacheExpiry.remove(playerUuid);
-                cached = null;
-            }
-            if (cached != null) {
-                if (cached) request.respond(200);
-                else request.respond(403);
-            } else {
-                CompletableFuture<User> userFuture = userManager.loadUser(UUID.fromString(playerUuid));
-                userFuture.thenAcceptAsync(user -> {
-                    try {
-                        List<Node> nodes = user.resolveInheritedNodes(QueryOptions.nonContextual()).stream().filter(n -> n.getKey().equals(permissionNode)).collect(Collectors.toList());
-                        // plugin.getLogger().info("Count: " + nodes.size());
-                        Optional<Node> node = nodes.stream().findFirst();
-                        if (node.isPresent() && node.get().getValue()) {
-                            permissionCache.put(playerUuid, true);
-                            permissionCacheExpiry.put(playerUuid, System.currentTimeMillis() +  CACHE_SECONDS * 1000);
-                            // plugin.getLogger().info("UUID: " + playerUuid + " HOST: " + host + " PERM: " + permissionNode + " = true");
-                            request.respond(200);
-                            return;
-                        }
-                        permissionCache.put(playerUuid, false);
-                        permissionCacheExpiry.put(playerUuid, System.currentTimeMillis() +  CACHE_SECONDS * 1000);
-                        // plugin.getLogger().info("UUID: " + playerUuid + " HOST: " + host + " PERM: " + permissionNode + " = false");
-                        request.respond(403);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                });
-            }
+
+            getPerm(playerUuid, permissionNode).thenAcceptAsync(value -> {
+                try {
+                    if (value) request.respond(200);
+                    else request.respond(403);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            });
         });
 
 
@@ -77,9 +53,7 @@ public class AuthorizationWebServer {
             String playerUuid = request.httpExchange.getRequestHeaders().get("x-minecraft-uuid").get(0);
             String permissionNode = config.getString("sites." + host);
             if (playerUuid != null && permissionNode != null) {
-                CompletableFuture<User> userFuture = userManager.loadUser(UUID.fromString(playerUuid));
-                Optional<Node> node = userFuture.get().resolveInheritedNodes(QueryOptions.nonContextual()).stream().filter(n -> n.getKey().equals(permissionNode)).findFirst();
-                if (node.isPresent() && node.get().getValue()) {
+                if (getPerm(playerUuid, permissionNode).get()) {
                     request.redirect("/");
                     return;
                 }
@@ -94,6 +68,7 @@ public class AuthorizationWebServer {
                     e.printStackTrace();
                 }
             }
+
             request.setBody(this.unauthorizedPage, "text/html");
             request.respond(200);
         });
@@ -102,6 +77,27 @@ public class AuthorizationWebServer {
 
         this.http.start();
         plugin.getLogger().info("Webserver bound to " + this.http.getAddress());
+    }
+
+    private CompletableFuture<Boolean> getPerm(@NotNull String uuid, @NotNull String permissionNode) {
+        Boolean cached = permissionCache.get(uuid);
+        Long expiry = permissionCacheExpiry.get(uuid);
+        if (expiry != null && expiry < System.currentTimeMillis()) {
+            permissionCache.remove(uuid);
+            permissionCacheExpiry.remove(uuid);
+            cached = null;
+        }
+        if (cached != null) {
+            return CompletableFuture.completedFuture(cached);
+        } else {
+            CompletableFuture<User> userFuture = this.userManager.loadUser(UUID.fromString(uuid));
+            return userFuture.thenApplyAsync(user -> {
+                boolean value = user.getCachedData().getPermissionData().checkPermission(permissionNode).asBoolean();
+                permissionCache.put(uuid, value);
+                permissionCacheExpiry.put(uuid, System.currentTimeMillis() + CACHE_SECONDS * 1000);
+                return value;
+            });
+        }
     }
 
     public void close() {
