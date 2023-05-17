@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication</title>
+    <style>
+        html, body {
+            background-color: #e4e4e7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            font-family:
+                    -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
+                    helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+            font-size: 1.25em;
+            line-height: 1.4
+       }
+        .container {
+            display: flex;
+            background-color: #d4d4d8;
+            border-radius: 3px;
+            padding: 12px;
+        }
+        .container p {
+            margin: 2px;
+            text-align: center;
+        }
+        #command {
+            background-color: #a1a1aa;
+            font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+            margin: 0;
+            padding: 6px;
+            border-radius: 3px;
+            position: relative;
+        }
+        #tooltip {
+            opacity: 0;
+            transition: opacity 0.5s;
+            position: absolute;
+            top: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            background-color: #a1a1aa;
+            border-radius: 3px;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <p>
+            Use this command to authenticate
+            <br>
+            <span id="command">
+                <span id="tooltip">Copied</span>
+                /auth {{auth_token}}
+            </span>
+        </p>
+    </div>
+    <script>
+        setInterval(() => {
+            fetch("./auth")
+                .then(res => {
+                    if (res.status === 200) window.location.reload();
+                })
+                .catch(() => null)
+        }, 5 * 1000);
+        document.getElementById("command").addEventListener("click", () => {
+            navigator.clipboard.writeText("/auth {{auth_token}}");
+            document.getElementById("tooltip").style.opacity = 1;
+            setTimeout(() => {
+                document.getElementById("tooltip").style.opacity = 0;
+            }, 2 * 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+name: Authorization
+version: '${version}'
+main: codes.antti.auth.authorization.AuthorizationPlugin
+api-version: 1.13
+depend: [LuckPerms]
+author: Antti
+description: Authorization of authenticated Minecraft players in web applications

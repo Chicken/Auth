@@ -1,0 +1,17 @@
+name: Authentication
+version: '${version}'
+main: codes.antti.auth.authentication.AuthenticationPlugin
+api-version: 1.13
+author: Antti
+description: Authentication of Minecraft players in web applications
+
+commands:
+  auth:
+    permission: authentication.authenticate
+    description: The command to authenticate on a web application
+    usage: "Usage: /<command> <code>"
+
+permissions:
+  authentication.authenticate:
+    description: Allows the usage of /auth
+    default: true
