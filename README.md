@@ -84,6 +84,11 @@ You can customize it to your branding by editing the `login.html` in `./plugins/
 Additional assets aren't currently supported, so the page needs to be self-contained.
 The string `{{auth_token}}` in the file is replaced by the auth token.
 
+#### Permissions
+
+The Authentication plugin comes with a single permission node `authentication.authenticate`.
+The permission node is for using the `/auth` command and is enabled by default.
+
 ## Authorization
 
 The Authorization plugin is an example application that can use the benefits of Authentication to lock down websites.
