@@ -49,7 +49,7 @@ the web application can do what it wants with the player's uuid.
 
 *This section is only relevant for advanced usage.*
 
-The Authentication plugin serves 4 HTTP endpoints `/auth`, `/login`, `/logout` and `/logout/all`.
+The Authentication plugin serves four HTTP endpoints `/auth`, `/login`, `/logout` and `/logout/all`.
 
 - `/auth` is the auth request endpoint used by Nginx. When a request has a valid session cookie
 it returns a status `200` and `x-minecraft-uuid` header with the authenticated player's uuid.
@@ -93,7 +93,7 @@ It simply checks a given uuid and host pair for a configured permission node.
 
 *This section is only relevant for advanced usage.*
 
-It serves two HTTP endpoints `/auth` and `/unauthorized`.
+The Authorization plugin serves two HTTP endpoints `/auth` and `/unauthorized`.
 
 - `/auth` checks `Host` and `x-minecraft-uuid` headers and returns status `200` if the user of `x-minecraft-uuid`
 has the configured permission node for `Host`. Otherwise, it returns status `403`.
@@ -123,9 +123,6 @@ Example Nginx config that authenticates and authorizes players for an imaginary 
 It assumes default plugin configs and everything running on the same linux server.
 Per the default configs players would need the `auth.map` permission node to access the website.
 In the config `127.0.0.1:8100` is the map itself.
-
-<details>
-<summary>Nginx config</summary>
 
 ```nginx
 # Basic http to https redirect
@@ -211,4 +208,3 @@ server {
     }
 }
 ```
-</details>
