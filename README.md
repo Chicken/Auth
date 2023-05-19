@@ -11,7 +11,7 @@ A pair of plugins for **authentication** and **authorization** of Minecraft play
 These plugins require you to have your own server such as a cloud vps or a dedicated bare metal server.
 This is because you will need multiple ports, Nginx and the ability to firewall ports from the outside world.
 Running on a Minecraft hosting service is probably a bad idea.
-The Authentication plugin also depends on LuckPerms for offline player permissions.
+The Authorization plugin also depends on LuckPerms for offline player permissions.
 
 Auth is pretty advanced stuff so this guide assumes you have pretty good basic understanding of Linux, Nginx and networking.
 If you can't create a simple reverse proxy on Nginx or set the dns A record on a domain, this isn't for you.
