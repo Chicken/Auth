@@ -16,10 +16,12 @@ public class AuthenticationDatabase extends Database {
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
     private final HashMap<String, Session> sessionCache = new HashMap<>();
     private final HashMap<String, Long> sessionCacheExpiry = new HashMap<>();
+    private final AuthenticationPlugin plugin;
     private static final long CACHE_SECONDS = 15;
 
     public AuthenticationDatabase(@NotNull AuthenticationPlugin plugin) throws SQLException {
         super(plugin.getDataFolder().getAbsolutePath() + "/db.sqlite");
+        this.plugin = plugin;
 
         this.update(
                 "CREATE TABLE IF NOT EXISTS meta (" +
@@ -103,7 +105,7 @@ public class AuthenticationDatabase extends Database {
         Session session = new Session(
                 generateNewSessionId(),
                 generateNewAuthToken(),
-                getUnixTime() + 31 * 24 * 60 * 60,
+                getUnixTime() + plugin.getConfig().getLong("session_length_days", 31) * 24 * 60 * 60,
                 null
         );
         this.update("INSERT INTO sessions VALUES (?, ?, ?, ?)", session.sessionId, session.authToken, session.expires, session.playerUuid);
