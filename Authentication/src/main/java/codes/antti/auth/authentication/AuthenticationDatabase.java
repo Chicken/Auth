@@ -93,10 +93,10 @@ public class AuthenticationDatabase extends Database {
         return base64Encoder.encodeToString(randomBytes);
     }
 
-    private static String generateNewAuthToken() {
+    private static String generateNewAuthToken(int length) {
         return new Random().ints(48, 90 + 1)
                 .filter(i -> i <= 57 || i >= 65)
-                .limit(7)
+                .limit(length)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
     }
@@ -104,7 +104,7 @@ public class AuthenticationDatabase extends Database {
     public Session createSession() throws SQLException {
         Session session = new Session(
                 generateNewSessionId(),
-                generateNewAuthToken(),
+                generateNewAuthToken(plugin.getConfig().getInt("auth_token_length", 7)),
                 getUnixTime() + plugin.getConfig().getLong("session_length_days", 31) * 24 * 60 * 60,
                 null
         );
