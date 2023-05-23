@@ -32,3 +32,5 @@ tasks.withType(AbstractArchiveTask::class).configureEach {
     isReproducibleFileOrder = true
     isPreserveFileTimestamps = false
 }
+
+tasks.register("publish") { }
