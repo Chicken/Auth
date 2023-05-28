@@ -1,6 +1,5 @@
 package codes.antti.auth.authentication;
 
-import codes.antti.auth.common.Database;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

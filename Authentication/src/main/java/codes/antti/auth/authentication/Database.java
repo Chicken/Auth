@@ -1,5 +1,4 @@
-package codes.antti.auth.common;
-
+package codes.antti.auth.authentication;
 
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;

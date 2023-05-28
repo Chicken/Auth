@@ -2,6 +2,7 @@ package codes.antti.auth.authorization;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.io.IOException;
 
 public final class AuthorizationPlugin extends JavaPlugin {
@@ -9,7 +10,11 @@ public final class AuthorizationPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
-        if (!getDataFolder().toPath().resolve("unauthorized.html").toFile().exists()) this.saveResource("unauthorized.html", false);
+        File webRoot = getDataFolder().toPath().resolve("web").toFile();
+        if (!webRoot.exists()) {
+            boolean _ignored = webRoot.mkdirs();
+        }
+        if (!webRoot.toPath().resolve("unauthorized.html").toFile().exists()) this.saveResource("web/unauthorized.html", true);
 
         try {
             this.server = new AuthorizationWebServer(this);

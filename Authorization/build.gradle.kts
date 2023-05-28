@@ -61,7 +61,7 @@ tasks.shadowJar {
     destinationDirectory.set(file("../build"))
     archiveClassifier.set("")
 
-    relocate ("org.sqlite", "codes.antti.shadow.sqlite")
+    relocate ("codes.antti.auth.common", "codes.antti.auth.authorization.shadow.common")
 }
 
 modrinth {

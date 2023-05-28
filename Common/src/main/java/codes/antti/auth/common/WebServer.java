@@ -5,11 +5,11 @@ import com.sun.net.httpserver.HttpServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public final class WebServer {
@@ -21,7 +21,7 @@ public final class WebServer {
         });
     }
 
-    public class Request {
+    public static class Request {
         public final HttpExchange httpExchange;
         private final HashMap<String, String> cookies = new HashMap<>();
         private final ArrayList<String> responseCookies = new ArrayList<>();
@@ -44,9 +44,6 @@ public final class WebServer {
             }
         }
 
-        public void setBody(@NotNull String body) {
-            this.setBody(body, null);
-        }
         public void setBody(@NotNull String body, @Nullable String bodyType) {
             this.bodyType = bodyType;
             this.body = body;
@@ -54,12 +51,10 @@ public final class WebServer {
 
         public void respond(int statusCode) throws IOException {
             if (this.responseCookies.size() > 0) setHeader("Set-Cookie", String.join("; ", responseCookies));
-            if (this.body != null) {
+            if (this.body != null) this.setHeader("Content-Type", Optional.ofNullable(bodyType).orElse("text/plain") + "; charset=UTF-8");
+            if (this.body != null && this.getMethod().equals("GET")) {
                 byte[] response = body.getBytes(StandardCharsets.UTF_8);
-
-                httpExchange.getResponseHeaders().add("Content-Type", Optional.ofNullable(bodyType).orElse("text/plain") + "; charset=UTF-8");
                 httpExchange.sendResponseHeaders(statusCode, response.length);
-
                 OutputStream out = httpExchange.getResponseBody();
                 out.write(response);
                 out.close();
@@ -84,12 +79,16 @@ public final class WebServer {
             return name + "=" + value + "; " +
                     "Expires=" + new Date(expires * 1000L) + "; " +
                     "HttpOnly; Secure; " +
-                    "SameSite=Strict;" +
+                    "SameSite=Strict; " +
                     "Path=/";
         }
 
         public HashMap<String, String> getCookies() {
             return cookies;
+        }
+
+        public String getMethod() {
+            return this.httpExchange.getRequestMethod();
         }
 
         public void setCookie(@NotNull String key, @NotNull String value, long expires) {
@@ -107,7 +106,12 @@ public final class WebServer {
     }
 
     public void handle(@NotNull String path, @NotNull Handler handler) {
-        this.internal.createContext(path, httpExchange -> {
+        this.internal.createContext(path.endsWith("*") ? path.substring(0, path.length() - 1) : path, httpExchange -> {
+            String method = httpExchange.getRequestMethod();
+            if (!method.equals("GET") && !method.equals("HEAD")) {
+                httpExchange.sendResponseHeaders(400, -1);
+                return;
+            }
             String requestPath = httpExchange.getRequestURI().getPath();
             if (!path.endsWith("*") && !path.equals(requestPath)) {
                 httpExchange.sendResponseHeaders(404, -1);
@@ -119,6 +123,56 @@ public final class WebServer {
                 throw ex;
             } catch (Exception ex) {
                 ex.printStackTrace();
+            }
+        });
+    }
+
+    public void serveStatic(@NotNull String path, @NotNull Path root) {
+        String rootString = root.toFile().getAbsolutePath();
+        if (!path.startsWith("/")) throw new RuntimeException("Path should start with a slash");
+        if (!path.endsWith("/")) throw new RuntimeException("Path should end with a slash");
+        this.internal.createContext(path, httpExchange -> {
+            String method = httpExchange.getRequestMethod();
+            if (!method.equals("GET") && !method.equals("HEAD")) {
+                httpExchange.sendResponseHeaders(400, -1);
+                return;
+            }
+            String wholePath = httpExchange.getRequestURI().getPath();
+            if (wholePath.endsWith("/")) wholePath += "index.html";
+            String fsPath = wholePath.substring(path.length());
+            File file;
+            try {
+                file = root.resolve(fsPath).toFile().getCanonicalFile();
+            } catch (IOException ex) {
+                httpExchange.sendResponseHeaders(400, -1);
+                return;
+            }
+            if (!file.getPath().startsWith(rootString)) {
+                httpExchange.sendResponseHeaders(400, -1);
+                return;
+            }
+            try (FileInputStream in = new FileInputStream(file)) {
+                String mimeType;
+                try {
+                    mimeType = Optional.ofNullable(Files.probeContentType(file.toPath())).orElse("text/plain");
+                } catch (Exception ignored) {
+                    mimeType = "text/plain";
+                };
+                httpExchange.getResponseHeaders().set("Content-Type", mimeType);
+                if (method.equals("GET")) {
+                    httpExchange.sendResponseHeaders(200, file.length());
+                    OutputStream out = httpExchange.getResponseBody();
+                    byte[] buf = new byte[4096];
+                    int n;
+                    while ((n = in.read(buf)) >= 0) {
+                        out.write(buf, 0, n);
+                    }
+                    out.close();
+                } else {
+                    httpExchange.sendResponseHeaders(200, -1);
+                }
+            } catch (FileNotFoundException e) {
+                httpExchange.sendResponseHeaders(404, -1);
             }
         });
     }

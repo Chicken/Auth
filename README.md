@@ -80,9 +80,9 @@ The default `31` means sessions expire after a month and then players need to re
 #### Customizing
 
 The default login page is very bland.
-You can customize it to your branding by editing the `login.html` in `./plugins/Authentication/login.html`.
-Additional assets aren't currently supported, so the page needs to be self-contained.
-The string `{{auth_token}}` in the file is replaced by the auth token.
+You can customize it to your branding by editing the `login.html` in `./plugins/Authentication/web/login.html`.
+You can create additional assets in the web folder. They will be available under the `/login/*` path of the webserver.
+The placeholder `{{auth_token}}` in the `login.html` file is replaced by the authentication token.
 
 #### Permissions
 
@@ -119,8 +119,16 @@ the player needs to have the `auth.map` permission node.
 The default unauthorized page is very bland.
 You can customize it to your branding by editing the `unauthorized.html` in `./plugins/Authorization/unauthorized.html`.
 You should probably consider adding instructions on how to get access or explain why the user can't access the page.
-Additional assets aren't currently supported, so the page needs to be self-contained.
-There are currently no placeholder variables that could be utilized.
+You can create additional assets in the web folder. They will be available under the `/unauthorized/*` path of the webserver.
+There are couple placeholders available for the `unauthorized.html` file:
+
+| Variable         | Value                              |
+|------------------|------------------------------------|
+| `{{uuid}}`       | Logged in player's uuid            |
+| `{{name}}`       | Logged in player's name            |
+| `{{host}}`       | The hostname of the target website |
+| `{{permission}}` | The required permission node       |
+
 
 ## Example Setup
 

@@ -22,6 +22,7 @@ dependencies {
     compileOnly ("org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT")
     compileOnly ("org.jetbrains:annotations:23.0.0")
     implementation ("codes.antti.auth:Common")
+    implementation ("org.xerial:sqlite-jdbc:3.41.2.1")
 }
 
 val javaTarget = 11
@@ -60,7 +61,8 @@ tasks.shadowJar {
     destinationDirectory.set(file("../build"))
     archiveClassifier.set("")
 
-    relocate ("org.sqlite", "codes.antti.shadow.sqlite")
+    relocate ("codes.antti.auth.common", "codes.antti.auth.authentication.shadow.common")
+    relocate ("org.sqlite", "codes.antti.auth.authentication.shadow.sqlite")
 }
 
 modrinth {

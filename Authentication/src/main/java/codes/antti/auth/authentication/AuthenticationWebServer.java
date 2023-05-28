@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 
 public class AuthenticationWebServer {
@@ -15,10 +16,11 @@ public class AuthenticationWebServer {
 
     private final WebServer http;
     private final AuthenticationPlugin plugin;
-    private String loginPage = null;
+    private final Path loginPagePath;
 
     public AuthenticationWebServer(@NotNull AuthenticationPlugin plugin) throws IOException {
         this.plugin = plugin;
+        this.loginPagePath = this.plugin.getDataFolder().toPath().resolve("web/login.html");
         FileConfiguration config = plugin.getConfig();
         this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8200));
         final String root = "/";
@@ -70,6 +72,8 @@ public class AuthenticationWebServer {
             request.respond(200);
         });
 
+        this.http.serveStatic("/login/", this.plugin.getDataFolder().toPath().resolve("web"));
+
 
 
         this.http.handle("/logout", request -> {
@@ -113,16 +117,15 @@ public class AuthenticationWebServer {
     }
 
     private String formatLoginPage(@NotNull String authToken) {
-        if (this.loginPage == null) {
-            try {
-                this.loginPage = Files.readString(this.plugin.getDataFolder().toPath().resolve("login.html"));
-            } catch (IOException e) {
-                this.loginPage = "Authenticate using: /auth {{auth_token}}";
-                this.plugin.getLogger().severe("Couldn't load login page, using a plain one");
-                e.printStackTrace();
-            }
+        String loginPage;
+        try {
+            loginPage = Files.readString(this.loginPagePath);
+        } catch (IOException e) {
+            loginPage = "Authenticate using: /auth {{auth_token}}";
+            this.plugin.getLogger().severe("Couldn't load login page, using a plain one");
+            e.printStackTrace();
         }
-        return this.loginPage.replaceAll("\\{\\{auth_token}}", authToken);
+        return loginPage.replaceAll("\\{\\{auth_token}}", authToken);
     }
 
     public void close() {

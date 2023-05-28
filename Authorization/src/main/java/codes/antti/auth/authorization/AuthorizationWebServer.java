@@ -10,13 +10,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class AuthorizationWebServer {
     private final WebServer http;
     private final UserManager userManager;
-    private String unauthorizedPage = null;
+    private final Path unauthorizedPagePath;
     private final HashMap<String, Boolean> permissionCache = new HashMap<>();
     private final HashMap<String, Long> permissionCacheExpiry = new HashMap<>();
     private static final long CACHE_SECONDS = 15;
@@ -26,6 +27,7 @@ public class AuthorizationWebServer {
         this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8300));
         LuckPerms lp = LuckPermsProvider.get();
         this.userManager = lp.getUserManager();
+        this.unauthorizedPagePath = plugin.getDataFolder().toPath().resolve("web/unauthorized.html");
 
         this.http.handle("/auth", request -> {
             String host = request.httpExchange.getRequestHeaders().get("host").get(0);
@@ -58,20 +60,28 @@ public class AuthorizationWebServer {
                     return;
                 }
             }
+            String playerName = playerUuid != null ? plugin.getServer().getOfflinePlayer(UUID.fromString(playerUuid)).getName() : "null";
 
-            if (this.unauthorizedPage == null) {
-                try {
-                    this.unauthorizedPage = Files.readString(plugin.getDataFolder().toPath().resolve("unauthorized.html"));
-                } catch (IOException e) {
-                    this.unauthorizedPage = "You are not authorized to use this application.";
-                    plugin.getLogger().severe("Couldn't load unauthorized page, using a plain one");
-                    e.printStackTrace();
-                }
+            String rawUnauthorizedPage;
+            try {
+                rawUnauthorizedPage = Files.readString(this.unauthorizedPagePath);
+            } catch (IOException e) {
+                rawUnauthorizedPage = "You are not authorized to use this application.";
+                plugin.getLogger().severe("Couldn't load unauthorized page, using a plain one");
+                e.printStackTrace();
             }
+            String unauthorizedPage =
+                    rawUnauthorizedPage
+                            .replaceAll("\\{\\{host}}", host)
+                            .replaceAll("\\{\\{permission}}", String.valueOf(permissionNode))
+                            .replaceAll("\\{\\{uuid}}", String.valueOf(playerUuid))
+                            .replaceAll("\\{\\{name}}", String.valueOf(playerName));
 
-            request.setBody(this.unauthorizedPage, "text/html");
+            request.setBody(unauthorizedPage, "text/html");
             request.respond(200);
         });
+
+        this.http.serveStatic("/unauthorized/", plugin.getDataFolder().toPath().resolve("web"));
 
 
 

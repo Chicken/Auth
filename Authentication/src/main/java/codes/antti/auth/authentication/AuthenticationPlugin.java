@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -18,7 +19,11 @@ public final class AuthenticationPlugin extends JavaPlugin implements CommandExe
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
-        if (!getDataFolder().toPath().resolve("login.html").toFile().exists()) this.saveResource("login.html", false);
+        File webRoot = getDataFolder().toPath().resolve("web").toFile();
+        if (!webRoot.exists()) {
+            boolean _ignored = webRoot.mkdirs();
+        }
+        if (!webRoot.toPath().resolve("login.html").toFile().exists()) this.saveResource("web/login.html", true);
 
         try {
             this.db = new AuthenticationDatabase(this);
