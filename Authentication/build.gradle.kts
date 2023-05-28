@@ -72,6 +72,7 @@ modrinth {
     changelog.set("View the changelog at [GitHub releases](https://github.com/Chicken/Auth/releases/tag/authentication-v${project.version})")
     uploadFile.set(tasks.findByName("shadowJar"))
     loaders.addAll("spigot", "paper")
+    versionType.set("ALPHA")
     gameVersions.addAll(
             "1.13.2",
             "1.14", "1.14.1", "1.14.2", "1.14.3", "1.14.4",
@@ -86,13 +87,14 @@ modrinth {
 hangarPublish {
     publications.register("plugin") {
         version.set(project.version as String)
-        namespace("Chicken", "Authentication")
+        namespace("Antti", "Authentication")
         channel.set("Alpha")
         changelog.set("View the changelog at [GitHub releases](https://github.com/Chicken/Auth/releases/tag/authentication-v${project.version})")
         apiKey.set(System.getenv("HANGAR_TOKEN"))
         platforms {
             register(io.papermc.hangarpublishplugin.model.Platforms.PAPER) {
-                url.set("https://github.com/Chicken/Auth/releases/download/authentication-v${project.version}/Authentication-${project.version}.jar")
+                // url.set("https://github.com/Chicken/Auth/releases/download/authentication-v${project.version}/Authentication-${project.version}.jar")
+                jar.set(tasks.shadowJar.flatMap { it.archiveFile })
                 platformVersions.set(listOf(
                     "1.13.2",
                     "1.14", "1.14.1", "1.14.2", "1.14.3", "1.14.4",
