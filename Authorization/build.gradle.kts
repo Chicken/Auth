@@ -22,7 +22,7 @@ dependencies {
     compileOnly ("org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT")
     compileOnly ("net.luckperms:api:5.4")
     compileOnly ("org.jetbrains:annotations:23.0.0")
-    implementation ("codes.antti.auth:Common")
+    implementation ("codes.antti.auth.common:Http")
 }
 
 val javaTarget = 11
@@ -62,6 +62,7 @@ tasks.shadowJar {
     archiveClassifier.set("")
 
     relocate ("codes.antti.auth.common", "codes.antti.auth.authorization.shadow.common")
+    relocate ("com.google.gson", "codes.antti.auth.authorization.shadow.gson")
 }
 
 modrinth {
@@ -79,7 +80,8 @@ modrinth {
             "1.16", "1.16.1", "1.16.2", "1.16.3", "1.16.4", "1.16.5",
             "1.17", "1.17.1",
             "1.18", "1.18.1", "1.18.2",
-            "1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4"
+            "1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4",
+            "1.20", "1.20.1"
     )
 }
 
@@ -102,7 +104,8 @@ hangarPublish {
                         "1.16", "1.16.1", "1.16.2", "1.16.3", "1.16.4", "1.16.5",
                         "1.17", "1.17.1",
                         "1.18", "1.18.1", "1.18.2",
-                        "1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4"
+                        "1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4",
+                        "1.20", "1.20.1"
                 ))
             }
         }

@@ -1,0 +1,8 @@
+name: BlueMap-PrivateLocation
+version: '${version}'
+main: codes.antti.auth.bluemap.privatelocation.BlueMapPrivateLocationPlugin
+api-version: 1.13
+author: Antti
+description: Prevent seeing other players' locations on the map while still seeing your own.
+depend:
+  - BlueMap

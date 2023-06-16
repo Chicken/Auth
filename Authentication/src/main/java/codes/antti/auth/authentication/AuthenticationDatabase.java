@@ -1,5 +1,7 @@
 package codes.antti.auth.authentication;
 
+import codes.antti.auth.common.sqlite.Database;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

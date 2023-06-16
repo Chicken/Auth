@@ -1,4 +1,4 @@
-package codes.antti.auth.authentication;
+package codes.antti.auth.common.sqlite;
 
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;

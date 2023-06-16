@@ -1,3 +1,4 @@
 rootProject.name = "Authentication"
 
-includeBuild("../Common")
+includeBuild("../Common/Http")
+includeBuild("../Common/Sqlite")

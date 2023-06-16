@@ -1,6 +1,11 @@
 rootProject.name = "Auth"
 
-includeBuild("Common")
+includeBuild("Common/Http")
+includeBuild("Common/Sqlite")
 
 includeBuild("Authentication")
 includeBuild("Authorization")
+
+includeBuild("BlueMap/Integration")
+includeBuild("BlueMap/PrivateLocation")
+// includeBuild("BlueMap/PrivateMarkers")

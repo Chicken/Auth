@@ -4,7 +4,7 @@ plugins {
     id ("java-library")
 }
 
-group = "codes.antti.auth"
+group = "codes.antti.auth.common"
 version = "0.0.0"
 
 repositories {
@@ -13,6 +13,7 @@ repositories {
 
 dependencies {
     compileOnly ("org.jetbrains:annotations:23.0.0")
+    implementation ("org.xerial:sqlite-jdbc:3.41.2.1")
 }
 
 val javaTarget = 11

@@ -1,3 +1,3 @@
 rootProject.name = "Authorization"
 
-includeBuild("../Common")
+includeBuild("../Common/Http")

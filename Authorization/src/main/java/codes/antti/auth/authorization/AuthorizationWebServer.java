@@ -1,6 +1,6 @@
 package codes.antti.auth.authorization;
 
-import codes.antti.auth.common.WebServer;
+import codes.antti.auth.common.http.WebServer;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -29,9 +29,9 @@ public class AuthorizationWebServer {
         this.userManager = lp.getUserManager();
         this.unauthorizedPagePath = plugin.getDataFolder().toPath().resolve("web/unauthorized.html");
 
-        this.http.handle("/auth", request -> {
-            String host = request.httpExchange.getRequestHeaders().get("host").get(0);
-            String playerUuid = request.httpExchange.getRequestHeaders().get("x-minecraft-uuid").get(0);
+        this.http.get("/auth", request -> {
+            String host = request.getHeader("host");
+            String playerUuid = request.getHeader("x-minecraft-uuid");
             String permissionNode = config.getString("sites." + host);
             if (playerUuid == null || permissionNode == null) {
                 request.respond(403);
@@ -50,9 +50,9 @@ public class AuthorizationWebServer {
 
 
 
-        this.http.handle("/unauthorized", request -> {
-            String host = request.httpExchange.getRequestHeaders().get("host").get(0);
-            String playerUuid = request.httpExchange.getRequestHeaders().get("x-minecraft-uuid").get(0);
+        this.http.get("/unauthorized", request -> {
+            String host = request.getHeader("host");
+            String playerUuid = request.getHeader("x-minecraft-uuid");
             String permissionNode = config.getString("sites." + host);
             if (playerUuid != null && permissionNode != null) {
                 if (getPerm(playerUuid, permissionNode).get()) {

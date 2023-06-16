@@ -1,6 +1,6 @@
 package codes.antti.auth.authentication;
 
-import codes.antti.auth.common.WebServer;
+import codes.antti.auth.common.http.WebServer;
 import codes.antti.auth.authentication.AuthenticationDatabase.Session;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ public class AuthenticationWebServer {
 
 
 
-        this.http.handle("/auth", request -> {
+        this.http.get("/auth", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
             if (sessionId == null) {
                 request.respond(401);
@@ -44,7 +44,7 @@ public class AuthenticationWebServer {
 
 
 
-        this.http.handle("/login", request -> {
+        this.http.get("/login", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
             Session session;
             if (sessionId == null) {
@@ -76,7 +76,7 @@ public class AuthenticationWebServer {
 
 
 
-        this.http.handle("/logout", request -> {
+        this.http.get("/logout", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
             if (sessionId == null) {
                 request.redirect(root);
@@ -94,7 +94,7 @@ public class AuthenticationWebServer {
 
 
 
-        this.http.handle("/logout/all", request -> {
+        this.http.get("/logout/all", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
             if (sessionId == null) {
                 request.redirect(root);

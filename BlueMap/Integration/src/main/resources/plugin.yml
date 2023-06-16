@@ -1,0 +1,8 @@
+name: BlueMap-Auth
+version: '${version}'
+main: codes.antti.auth.bluemap.integration.BlueMapAuthIntegrationPlugin
+api-version: 1.13
+author: Antti
+description: Authentication base integration for BlueMap
+depend:
+  - BlueMap
