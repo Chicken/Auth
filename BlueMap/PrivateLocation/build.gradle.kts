@@ -63,8 +63,8 @@ tasks.shadowJar {
     destinationDirectory.set(file("../../build"))
     archiveClassifier.set("")
 
-    relocate ("codes.antti.auth.common", "codes.antti.auth.bluemap.integration.shadow.common")
-    relocate ("com.google.gson", "codes.antti.auth.bluemap.integration.shadow.gson")
+    relocate ("codes.antti.auth.common", "codes.antti.auth.bluemap.privatelocation.shadow.common")
+    relocate ("com.google.gson", "codes.antti.auth.bluemap.privatelocation.shadow.gson")
 }
 
 tasks.register("publish") { }
