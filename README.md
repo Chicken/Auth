@@ -6,6 +6,14 @@
 
 A pair of plugins for **authentication** and **authorization** of Minecraft players in web applications.
 
+You can also find a bunch of example plugins using this authentication system
+for BlueMap addons in [the BlueMap -folder](./BlueMap).
+
+An authenticated BlueMap demo can be found at https://auth-dev.antti.codes/.
+The Minecraft server is also available at ip `auth-dev.antti.codes`.
+In the server you can use demo commands `/demo list` and `/demo toggle <node>` to change your permissions.
+This server doubles as my development server so it might sometimes be down or have features not yet on GitHub.
+
 ## Prerequisites
 
 These plugins require you to have your own server such as a cloud vps or a dedicated bare metal server.

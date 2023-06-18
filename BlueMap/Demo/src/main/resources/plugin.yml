@@ -1,0 +1,14 @@
+name: Demo
+version: '${version}'
+main: codes.antti.auth.bluemap.demo.DemoPlugin
+api-version: 1.13
+author: Antti
+description: This is just a simple plugin for demo usage that lets users toggle some of their permissions nodes.
+depend:
+    - LuckPerms
+
+commands:
+    demo:
+        description: Toggle a permission node
+        usage: /<command> <list|toggle> [node]
+

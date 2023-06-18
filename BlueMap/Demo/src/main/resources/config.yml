@@ -1,0 +1,6 @@
+nodes:
+  - privatelocation.seeall
+  - auth.map
+  - auth.maps.world
+  - auth.maps.world_nether
+  - auth.maps.world_the_end
