@@ -23,6 +23,7 @@ dependencies {
     compileOnly ("org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT")
     compileOnly ("org.jetbrains:annotations:23.0.0")
     compileOnly ("com.github.BlueMap-Minecraft:BlueMapAPI:v2.5.1")
+    compileOnly ("net.luckperms:api:5.4")
     implementation ("codes.antti.auth.common:Http")
     implementation ("com.google.code.gson:gson:2.10.1")
 }
