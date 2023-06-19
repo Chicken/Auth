@@ -74,8 +74,10 @@ public class Request {
         this.httpExchange.getResponseHeaders().set(key ,value);
     }
 
-    public String getHeader(@NotNull String key) {
-        return this.httpExchange.getRequestHeaders().get(key).get(0);
+    public @Nullable String getHeader(@NotNull String key) {
+        List<String> headers = this.httpExchange.getRequestHeaders().get(key);
+        if (headers != null && headers.size() != 0) return headers.get(0);
+        else return null;
     }
 
     public String getPath() {

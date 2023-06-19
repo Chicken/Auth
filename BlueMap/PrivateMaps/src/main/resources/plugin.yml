@@ -1,0 +1,6 @@
+name: BlueMap-PrivateMaps
+version: '${version}'
+main: codes.antti.auth.bluemap.privatemaps.BlueMapPrivateMapsPlugin
+api-version: 1.13
+author: Antti
+description: Add permissions nodes for maps.
