@@ -32,7 +32,7 @@ public final class BlueMapPrivateMapsPlugin extends JavaPlugin {
 	private UserManager userManager;
 	private final HashMap<String, Boolean> permissionCache = new HashMap<>();
 	private final HashMap<String, Long> permissionCacheExpiry = new HashMap<>();
-	private static final long CACHE_SECONDS = 15;
+	private static final long CACHE_SECONDS = 60;
     @Override
     public void onEnable() {
         saveDefaultConfig();

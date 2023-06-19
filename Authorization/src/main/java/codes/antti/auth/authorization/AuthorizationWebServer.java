@@ -20,7 +20,7 @@ public class AuthorizationWebServer {
     private final Path unauthorizedPagePath;
     private final HashMap<String, Boolean> permissionCache = new HashMap<>();
     private final HashMap<String, Long> permissionCacheExpiry = new HashMap<>();
-    private static final long CACHE_SECONDS = 15;
+    private static final long CACHE_SECONDS = 60;
 
     public AuthorizationWebServer(AuthorizationPlugin plugin) throws IOException {
         FileConfiguration config = plugin.getConfig();

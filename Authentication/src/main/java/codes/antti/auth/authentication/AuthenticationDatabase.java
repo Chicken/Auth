@@ -18,7 +18,7 @@ public class AuthenticationDatabase extends Database {
     private final HashMap<String, Session> sessionCache = new HashMap<>();
     private final HashMap<String, Long> sessionCacheExpiry = new HashMap<>();
     private final AuthenticationPlugin plugin;
-    private static final long CACHE_SECONDS = 15;
+    private static final long CACHE_SECONDS = 60;
 
     public AuthenticationDatabase(@NotNull AuthenticationPlugin plugin) throws SQLException {
         super(plugin.getDataFolder().getAbsolutePath() + "/db.sqlite");
