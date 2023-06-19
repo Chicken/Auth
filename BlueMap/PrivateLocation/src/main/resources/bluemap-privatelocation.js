@@ -2,9 +2,9 @@ void async function() {
     console.log("[PrivateLocation/info] Private location loaded!");
 
     const PlayerMarkerManager = window.bluemap.playerMarkerManager.constructor;
-    const BlueMapMap = window.bluemap.constructor;
+    const BlueMapApp = window.bluemap.constructor;
 
-    BlueMapMap.prototype.initPlayerMarkerManager = function() {
+    BlueMapApp.prototype.initPlayerMarkerManager = function() {
         if (this.playerMarkerManager){
             this.playerMarkerManager.clear();
             this.playerMarkerManager.dispose()
