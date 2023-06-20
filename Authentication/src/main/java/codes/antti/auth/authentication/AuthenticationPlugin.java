@@ -67,7 +67,7 @@ public final class AuthenticationPlugin extends JavaPlugin implements CommandExe
         String authToken = args[0];
 
         try {
-            if (this.db.verifySession(authToken, player.getUniqueId().toString())) {
+            if (this.db.verifySession(authToken, player.getUniqueId().toString(), player.getName())) {
                 sender.sendMessage("Verification successful");
             } else {
                 sender.sendMessage("Verification failed, check that you typed the authentication token correctly");

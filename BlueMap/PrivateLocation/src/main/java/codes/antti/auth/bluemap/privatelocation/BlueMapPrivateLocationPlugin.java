@@ -53,13 +53,23 @@ public final class BlueMapPrivateLocationPlugin extends JavaPlugin {
 
 			this.http.get("/players/*", request -> {
 				String playerUuid = request.getHeader("x-minecraft-uuid");
-				if (playerUuid == null) {
+				String loggedIn = request.getHeader("x-minecraft-loggedin");
+				if (loggedIn == null) {
 					request.respond(400);
 					return;
 				}
 				String mapId = request.getPath().substring(9);
 				Optional<BlueMapMap> optionalMap = api.getMap(mapId);
 				if (optionalMap.isPresent()) {
+					if (!loggedIn.equals("true")) {
+						request.setBody("{\"players\":[]}", "application/json");
+						request.respond(200);
+						return;
+					}
+					if (playerUuid == null) {
+						request.respond(400);
+						return;
+					}
 					World world = getServer().getWorld(UUID.fromString(optionalMap.get().getWorld().getId()));
 					permCheck(playerUuid).thenAcceptAsync((perm) -> {
 						String response = getPlayersObject(world, UUID.fromString(playerUuid), perm);

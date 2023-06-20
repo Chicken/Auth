@@ -35,10 +35,20 @@ public final class BlueMapAuthIntegrationPlugin extends JavaPlugin {
 			}
 
 			this.http.get("/whoami", request -> {
-				JsonObject response = new JsonObject();
+				String loggedIn = request.getHeader("x-minecraft-loggedin");
 				String uuid = request.getHeader("x-minecraft-uuid");
+				String username = request.getHeader("x-minecraft-username");
+				if (loggedIn == null || (loggedIn.equals("true") && (uuid == null || username == null))) {
+					request.respond(400);
+					return;
+				}
+				if (!loggedIn.equals("true")) {
+					request.setBody("{}", "application/json");
+					request.respond(200);
+					return;
+				}
+				JsonObject response = new JsonObject();
 				response.addProperty("uuid", uuid);
-				String username = getServer().getOfflinePlayer(UUID.fromString(uuid)).getName();
 				response.addProperty("username", username);
 				request.json(response);
 				request.respond(200);

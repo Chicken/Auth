@@ -12,7 +12,10 @@ import java.util.Objects;
 
 public class AuthenticationWebServer {
     private static final String SESSION_ID_COOKIE = "mc_auth_sid";
+    private static final String X_LOGGEDIN_HEADER = "x-minecraft-loggedin";
     private static final String X_UUID_HEADER = "x-minecraft-uuid";
+    private static final String X_USERNAME_HEADER = "x-minecraft-username";
+
 
     private final WebServer http;
     private final AuthenticationPlugin plugin;
@@ -24,21 +27,32 @@ public class AuthenticationWebServer {
         FileConfiguration config = plugin.getConfig();
         this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8200));
         final String root = "/";
+        final boolean optionalAuth = config.getBoolean("optional_authentication", false);
 
 
 
         this.http.get("/auth", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
             if (sessionId == null) {
-                request.respond(401);
+                if (optionalAuth) {
+                    request.setHeader(X_LOGGEDIN_HEADER, "false");
+                    request.respond(200);
+                }
+                else request.respond(401);
                 return;
             }
             Session session = plugin.db.getSession(sessionId);
-            if (session == null || session.playerUuid == null) {
-                request.respond(401);
+            if (session == null || session.playerUuid == null || session.username == null) {
+                if (optionalAuth) {
+                    request.setHeader(X_LOGGEDIN_HEADER, "false");
+                    request.respond(200);
+                }
+                else request.respond(401);
                 return;
             }
+            request.setHeader(X_LOGGEDIN_HEADER, "true");
             request.setHeader(X_UUID_HEADER, session.playerUuid);
+            request.setHeader(X_USERNAME_HEADER, session.username);
             request.respond(200);
         });
 

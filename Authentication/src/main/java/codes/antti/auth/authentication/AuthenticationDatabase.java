@@ -48,7 +48,7 @@ public class AuthenticationDatabase extends Database {
             schemaVersion = 0;
         }
 
-        int codeSchemaVersion = 1;
+        int codeSchemaVersion = 2;
         if (schemaVersion < 0 || schemaVersion > codeSchemaVersion) throw new SQLException("Invalid schema version");
 
         if (schemaVersion == 0) {
@@ -60,12 +60,22 @@ public class AuthenticationDatabase extends Database {
                             "player_uuid text DEFAULT NULL" +
                             ")"
             );
+        }
+
+        if (schemaVersion == 1) {
+            this.update(
+                    "ALTER TABLE sessions ADD COLUMN username text DEFAULT NULL"
+            );
 
             this.update(
-                    "UPDATE meta SET value = ? WHERE key = ?",
-                    Integer.toString(codeSchemaVersion), "schema"
+                    "DELETE FROM sessions"
             );
         }
+
+        this.update(
+                "UPDATE meta SET value = ? WHERE key = ?",
+                Integer.toString(codeSchemaVersion), "schema"
+        );
 
         this.update("DELETE FROM sessions WHERE expires < ?", getUnixTime());
     }
@@ -76,11 +86,14 @@ public class AuthenticationDatabase extends Database {
         public long expires;
         @Nullable
         public String playerUuid;
-        public Session(@NotNull String sessionId, @NotNull String authToken, long expires, @Nullable String playerUuid) {
+        @Nullable
+        public String username;
+        public Session(@NotNull String sessionId, @NotNull String authToken, long expires, @Nullable String playerUuid, @Nullable String username) {
             this.sessionId = sessionId;
             this.authToken = authToken;
             this.expires = expires;
             this.playerUuid = playerUuid;
+            this.username = username;
         }
     }
 
@@ -107,9 +120,10 @@ public class AuthenticationDatabase extends Database {
                 generateNewSessionId(),
                 generateNewAuthToken(plugin.getConfig().getInt("auth_token_length", 7)),
                 getUnixTime() + plugin.getConfig().getLong("session_length_days", 31) * 24 * 60 * 60,
+                null,
                 null
         );
-        this.update("INSERT INTO sessions VALUES (?, ?, ?, ?)", session.sessionId, session.authToken, session.expires, session.playerUuid);
+        this.update("INSERT INTO sessions VALUES (?, ?, ?, ?, ?)", session.sessionId, session.authToken, session.expires, session.playerUuid, session.username);
         return session;
     }
 
@@ -123,16 +137,17 @@ public class AuthenticationDatabase extends Database {
             cached = null;
         }
         if (cached != null) return cached;
-        ResultSet res = this.query("SELECT player_uuid, auth_token, expires FROM sessions WHERE session_id = ?", sessionId);
+        ResultSet res = this.query("SELECT auth_token, expires, player_uuid, username FROM sessions WHERE session_id = ?", sessionId);
         if (!res.next()) return null;
+        String authToken = res.getString("auth_token");
         long expires = res.getLong("expires");
         String uuid = res.getString("player_uuid");
-        String authToken = res.getString("auth_token");
+        String username = res.getString("username");
         if (expires < getUnixTime()) {
             this.deleteSession(sessionId);
             return null;
         }
-        Session session = new Session(sessionId, authToken, expires, uuid);
+        Session session = new Session(sessionId, authToken, expires, uuid, username);
         sessionCache.put(sessionId, session);
         sessionCacheExpiry.put(sessionId, System.currentTimeMillis() + CACHE_SECONDS * 1000);
         return session;
@@ -149,11 +164,14 @@ public class AuthenticationDatabase extends Database {
     /**
      * Returns `true` if verification was successful, `false` otherwise
      */
-    public boolean verifySession(@NotNull String authToken, @NotNull String uuid) throws SQLException {
+    public boolean verifySession(@NotNull String authToken, @NotNull String uuid, @NotNull String username) throws SQLException {
         ResultSet existingRes = this.query("SELECT * FROM sessions WHERE auth_token = ?", authToken);
         if (!existingRes.next()) return false;
         if (existingRes.getString("player_uuid") != null) return false;
-        this.update("UPDATE sessions SET player_uuid = ? WHERE auth_token = ?", uuid, authToken);
+        this.update("UPDATE sessions SET player_uuid = ?, username = ? WHERE auth_token = ?", uuid, username, authToken);
+        String sessionId = existingRes.getString("session_id");
+        sessionCache.remove(sessionId);
+        sessionCacheExpiry.remove(sessionId);
         return true;
     }
 }

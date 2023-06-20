@@ -7,12 +7,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
-import net.luckperms.api.model.user.User;
-import net.luckperms.api.model.user.UserManager;
-import org.bukkit.OfflinePlayer;
+import net.luckperms.api.model.PermissionHolder;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
 public final class BlueMapPrivateMapsPlugin extends JavaPlugin {
 	private WebServer http;
 	private static final Gson gson = new Gson();
-	private UserManager userManager;
+	private LuckPerms lp;
 	private final HashMap<String, Boolean> permissionCache = new HashMap<>();
 	private final HashMap<String, Long> permissionCacheExpiry = new HashMap<>();
 	private static final long CACHE_SECONDS = 60;
@@ -37,8 +36,7 @@ public final class BlueMapPrivateMapsPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
 		Configuration config = getConfig();
-		LuckPerms lp = LuckPermsProvider.get();
-		this.userManager = lp.getUserManager();
+		this.lp = LuckPermsProvider.get();
 
         try {
             this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8600));
@@ -58,7 +56,8 @@ public final class BlueMapPrivateMapsPlugin extends JavaPlugin {
 		}
 		this.http.get("/settings.json", (request) -> {
 			String playerUuid = request.getHeader("x-minecraft-uuid");
-			if (playerUuid == null) {
+			String loggedIn = request.getHeader("x-minecraft-loggedin");
+			if (loggedIn == null || (loggedIn.equals("true") && playerUuid == null)) {
 				request.respond(400);
 				return;
 			}
@@ -94,7 +93,8 @@ public final class BlueMapPrivateMapsPlugin extends JavaPlugin {
 		this.http.get("/auth", (request) -> {
 			String playerUuid = request.getHeader("x-minecraft-uuid");
 			String originalUri = request.getHeader("x-original-uri");
-			if (playerUuid == null || originalUri == null) {
+			String loggedIn = request.getHeader("x-minecraft-loggedin");
+			if (loggedIn == null || originalUri == null || (loggedIn.equals("true") && playerUuid == null)) {
 				request.respond(400);
 				return;
 			}
@@ -115,7 +115,8 @@ public final class BlueMapPrivateMapsPlugin extends JavaPlugin {
         getLogger().info("BlueMap-PrivateMaps enabled");
     }
 
-	public CompletableFuture<Boolean> permCheck(@NotNull String node, @NotNull String uuid) {
+	public CompletableFuture<Boolean> permCheck(@NotNull String node, @Nullable String uuid) {
+		if (uuid == null) uuid = "default";
 		String cacheKey = node + ":" + uuid;
 		Boolean cached = permissionCache.get(cacheKey);
 		Long expiry = permissionCacheExpiry.get(cacheKey);
@@ -127,9 +128,12 @@ public final class BlueMapPrivateMapsPlugin extends JavaPlugin {
 		if (cached != null) {
 			return CompletableFuture.completedFuture(cached);
 		} else {
-			CompletableFuture<User> userFuture = this.userManager.loadUser(UUID.fromString(uuid));
-			return userFuture.thenApplyAsync(user -> {
-				boolean value = user.getCachedData().getPermissionData().checkPermission(node).asBoolean();
+			CompletableFuture<? extends PermissionHolder> permFuture = uuid.equals("default")
+					? this.lp.getGroupManager().loadGroup("default").thenApply(go -> go.orElse(null))
+					: this.lp.getUserManager().loadUser(UUID.fromString(uuid));
+			return permFuture.thenApplyAsync(holder -> {
+				if (holder == null) return false;
+				boolean value = holder.getCachedData().getPermissionData().checkPermission(node).asBoolean();
 				permissionCache.put(cacheKey, value);
 				permissionCacheExpiry.put(cacheKey, System.currentTimeMillis() + CACHE_SECONDS * 1000);
 				return value;

@@ -1,5 +1,6 @@
 ip: "127.0.0.1"
 port: 8200
 
+optional_authentication: false
 session_length_days: 31
 auth_token_length: 7

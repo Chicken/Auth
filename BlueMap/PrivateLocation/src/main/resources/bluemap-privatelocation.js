@@ -26,7 +26,8 @@ void async function() {
                 this.playerMarkerManager.setAutoUpdateInterval(1000);
             })
             .catch(e => {
-                alert(this.events, e, "warning");
+                // alert(this.events, e, "warning"); // Original
+                console.log("[PrivateLocation/info] BlueMap warning for", this.events, e) // Changed
                 this.playerMarkerManager.clear();
                 this.playerMarkerManager.dispose();
             });
