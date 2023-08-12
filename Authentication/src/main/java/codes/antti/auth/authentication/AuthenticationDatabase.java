@@ -51,7 +51,7 @@ public class AuthenticationDatabase extends Database {
         int codeSchemaVersion = 2;
         if (schemaVersion < 0 || schemaVersion > codeSchemaVersion) throw new SQLException("Invalid schema version");
 
-        if (schemaVersion == 0) {
+        if (schemaVersion < 1) {
             this.update(
                     "CREATE TABLE IF NOT EXISTS sessions (" +
                             "session_id text PRIMARY KEY NOT NULL," +
@@ -62,7 +62,7 @@ public class AuthenticationDatabase extends Database {
             );
         }
 
-        if (schemaVersion == 1) {
+        if (schemaVersion < 2) {
             this.update(
                     "ALTER TABLE sessions ADD COLUMN username text DEFAULT NULL"
             );
