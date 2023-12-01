@@ -1,8 +1,10 @@
 # Auth
 
+<!--
 > **Warning** <br>
 > In development, be wary when using in production.  
 > The security of this solution hasn't been verified by third parties.
+-->
 
 A pair of plugins for **authentication** and **authorization** of Minecraft players in web applications.
 
