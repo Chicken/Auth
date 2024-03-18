@@ -49,6 +49,9 @@ void async function() {
         </div>
         `.trim();
         userElement = userTemplate.content.firstChild;
+        window.bluemapAuth = { loggedIn: true, uuid, username };
+    } else {
+        window.bluemapAuth = { loggedIn: false };
     }
 
     setInterval(() => {

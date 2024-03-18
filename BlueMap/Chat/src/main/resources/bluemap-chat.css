@@ -1,0 +1,50 @@
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+#chat-root {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: min(calc(100vw - 3em), 600px);
+    height: 300px;
+    margin: 0;
+    padding: 0;
+    background-color: rgba(0,0,0, 0.25);
+    font-family: "VT323", sans-serif;
+    color: white;
+    font-size: 24px;
+    box-sizing: border-box;
+}
+
+#chat-messages {
+    width: 100%;
+    height: calc(100% - 36px);
+    padding: 6px;
+    margin: 0;
+    display: flex;
+    flex-direction: column-reverse;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    gap: 4px;
+    box-sizing: border-box;
+}
+
+#chat-messages > div {
+    word-wrap: break-word;
+}
+
+#chat-messages > .death {
+    color: #ea3e3e;
+}
+
+#chat-messages > .joinquit {
+    color: #fbd726;
+}
+
+#chat-input {
+    background-color: transparent;
+    width: 100%;
+    height: 36px;
+    padding: 6px;
+    margin: 0;
+    box-sizing: border-box;
+}

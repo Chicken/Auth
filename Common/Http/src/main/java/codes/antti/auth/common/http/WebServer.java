@@ -24,9 +24,17 @@ public final class WebServer {
     }
 
     public void get(@NotNull String path, @NotNull Handler handler) {
+        this.genericContextCreator(List.of("GET", "HEAD"), path, handler);
+    }
+
+    public void post(@NotNull String path, @NotNull Handler handler) {
+        this.genericContextCreator(List.of("POST"), path, handler);
+    }
+
+    private void genericContextCreator(@NotNull List<String> methods, @NotNull String path, @NotNull Handler handler) {
         this.internal.createContext(path.endsWith("*") ? path.substring(0, path.length() - 1) : path, httpExchange -> {
             String method = httpExchange.getRequestMethod();
-            if (!method.equals("GET") && !method.equals("HEAD")) {
+            if (!methods.contains(method)) {
                 httpExchange.sendResponseHeaders(400, -1);
                 return;
             }

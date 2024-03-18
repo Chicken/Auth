@@ -1,12 +1,14 @@
 package codes.antti.auth.common.http;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.sun.net.httpserver.HttpExchange;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -46,6 +48,14 @@ public class Request {
     public void setBody(@NotNull String body, @Nullable String bodyType) {
         this.bodyType = bodyType;
         this.body = body;
+    }
+
+    public String getBodyString() throws IOException {
+        return new String(this.httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    public JsonElement getBodyJson() throws IOException {
+        return gson.fromJson(getBodyString(), JsonElement.class);
     }
 
     public void respond(int statusCode) throws IOException {
@@ -106,5 +116,9 @@ public class Request {
 
     public void clearCookie(@NotNull String key) {
         responseCookies.add(formatCookie(key, "", 0L));
+    }
+
+    public SSERequest sse(SSERequest.CloseHandler closeHandler) throws IOException {
+        return new SSERequest(this.httpExchange, closeHandler);
     }
 }

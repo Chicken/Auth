@@ -1,0 +1,9 @@
+name: BlueMap-Chat
+version: '${version}'
+main: codes.antti.auth.bluemap.chat.BlueMapChatPlugin
+api-version: 1.13
+author: Antti
+description: Web chat integration for BlueMap
+depend:
+  - BlueMap
+  - BlueMap-Auth
