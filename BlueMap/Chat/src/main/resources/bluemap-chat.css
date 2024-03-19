@@ -17,6 +17,7 @@
     font-size: 18px;
     line-height: 1.25;
     box-sizing: border-box;
+    text-shadow: -2px 2px 0px black;
 }
 
 #chat-messages {
@@ -51,4 +52,5 @@
     padding: 6px;
     margin: 0;
     box-sizing: border-box;
+    text-shadow: inherit;
 }
