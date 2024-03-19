@@ -119,6 +119,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 			try {
 				copyResource("bluemap-chat.js");
 				copyResource("bluemap-chat.css");
+				copyResource("minecraft.otf");
 				api.getWebApp().registerScript("assets/bluemap-chat.js");
 				api.getWebApp().registerStyle("assets/bluemap-chat.css");
 			} catch (IOException ex) {
