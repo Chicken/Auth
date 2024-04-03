@@ -8,8 +8,9 @@
 
 A pair of plugins for **authentication** and **authorization** of Minecraft players in web applications.
 
-You can also find a bunch of example plugins using this authentication system
-for BlueMap addons in [the BlueMap -folder](./BlueMap).
+You can also find a bunch of plugins using this authentication system
+for BlueMap addons in [the BlueMap -folder](./BlueMap). Should these be in a seperate repository?
+Absolutely! Are they? No. Is Authorization the child that's not liked as other solutions are better? Yes.
 
 An authenticated BlueMap demo can be found at https://auth-dev.antti.codes/.
 The Minecraft server is also available at ip `auth-dev.antti.codes`.
@@ -61,9 +62,12 @@ the web application can do what it wants with the player's uuid.
 
 The Authentication plugin serves four HTTP endpoints `/auth`, `/login`, `/logout` and `/logout/all`.
 
-- `/auth` is the auth request endpoint used by Nginx. When a request has a valid session cookie
-it returns a status `200` and `x-minecraft-uuid` header with the authenticated player's uuid.
-Otherwise, it will return a status `401`.
+- `/auth` is the auth request endpoint used by Nginx. When a request has a valid session cookie and `x-forwarded-for`
+header with the correct ip for that session it returns a status `200` and `x-minecraft-uuid` header with 
+the authenticated player's uuid and `x-minecraft-username` header with the username. 
+Otherwise, it will return a status `401` unless optional authentication is enabled when `200` is always returned.
+When optional authentication is enabled a header called `x-minecraft-loggedin` is also returned with a boolean.
+If the header is returned with false, the uuid and username headers do not exist.
 
 - `/login` serves the static HTML file. It also sends a `Set-Cookie` header
 to set a session cookie if the user doesn't already have one.
@@ -82,10 +86,15 @@ This setting might also be useful if you are running more exotic hardware config
 
 The `port` setting is by default `8200` and should be self-explanatory for someone settings this up.
 
-`session_length_days` and `auth_token_length` and are optional customizations you can do for the authentication.
+The `optional_authentication` setting defines if users are forced to log in or not. When set to `true` the users
+can view the application without logging in and the application can choose to show its own guest mode and login button.
+
+`session_length_days`, `auth_token_length` and `user_max_sessions` are optional customizations you can do for the authentication.
 `session_length_days` is the lifetime of a session in days.
 The default `31` means sessions expire after a month and then players need to reauthenticate.
 `auth_token_length` is the length of the random string given to players for the command to authenticate.
+`user_max_sessions` is the maximum amount of sessions a user can have at the same time. When the limit is reached,
+the oldest session will be removed.
 
 #### Customizing
 
@@ -103,6 +112,7 @@ The permission node is for using the `/auth` command and is enabled by default.
 
 The Authorization plugin is an example application that can use the benefits of Authentication to lock down websites.
 It simply checks a given uuid and host pair for a configured permission node.
+Authorization doesn't support optional authentication.
 
 ### Endpoints
 
@@ -188,6 +198,8 @@ server {
   location /authentication-outpost/ {
     # Proxy to your authentication plugin instance
     proxy_pass http://127.0.0.1:8200/; # REPLACE ME
+    # Send users ip to authentication for security reasons
+    proxy_set_header X-Forwarded-For $remote_addr;
     # Nginx requirements
     proxy_pass_request_body off;
     proxy_set_header Content-Length "";
