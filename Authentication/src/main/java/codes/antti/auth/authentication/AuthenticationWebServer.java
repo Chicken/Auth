@@ -50,6 +50,15 @@ public class AuthenticationWebServer {
                 else request.respond(401);
                 return;
             }
+            if (!request.getProxyIp().equals(session.ip)) {
+                plugin.db.deleteSession(sessionId);
+                if (optionalAuth) {
+                    request.setHeader(X_LOGGEDIN_HEADER, "false");
+                    request.respond(200);
+                }
+                else request.respond(401);
+                return;
+            }
             request.setHeader(X_LOGGEDIN_HEADER, "true");
             request.setHeader(X_UUID_HEADER, session.playerUuid);
             request.setHeader(X_USERNAME_HEADER, session.username);
@@ -62,8 +71,8 @@ public class AuthenticationWebServer {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
             Session session;
             if (sessionId == null) {
-                session = plugin.db.createSession();
-                request.setCookie(SESSION_ID_COOKIE, session.sessionId, session.expires);
+                session = plugin.db.createSession(request.getProxyIp());
+                request.setCookie(SESSION_ID_COOKIE, session.sessionId, session.createdAt + plugin.db.sessionLength);
                 request.setBody(formatLoginPage(session.authToken), "text/html");
                 request.respond(200);
                 return;
@@ -80,8 +89,8 @@ public class AuthenticationWebServer {
                 return;
             }
 
-            session = plugin.db.createSession();
-            request.setCookie(SESSION_ID_COOKIE, session.sessionId, session.expires);
+            session = plugin.db.createSession(request.getProxyIp());
+            request.setCookie(SESSION_ID_COOKIE, session.sessionId, session.createdAt + plugin.db.sessionLength);
             request.setBody(formatLoginPage(session.authToken), "text/html");
             request.respond(200);
         });

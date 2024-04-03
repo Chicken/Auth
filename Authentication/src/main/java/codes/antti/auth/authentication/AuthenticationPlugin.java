@@ -15,10 +15,12 @@ import java.util.Objects;
 public final class AuthenticationPlugin extends JavaPlugin implements CommandExecutor {
     AuthenticationWebServer server;
     AuthenticationDatabase db;
+    private int userMaxSessions;
 
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
+        this.userMaxSessions = this.getConfig().getInt("user_max_sessions", 3);
         File webRoot = getDataFolder().toPath().resolve("web").toFile();
         if (!webRoot.exists()) {
             boolean _ignored = webRoot.mkdirs();
@@ -68,6 +70,8 @@ public final class AuthenticationPlugin extends JavaPlugin implements CommandExe
 
         try {
             if (this.db.verifySession(authToken, player.getUniqueId().toString(), player.getName())) {
+                int sessionsCount = this.db.getSessionsCount(player.getUniqueId().toString());
+                if (sessionsCount > this.userMaxSessions) this.db.deleteOldestSessions(player.getUniqueId().toString(), sessionsCount - this.userMaxSessions);
                 sender.sendMessage("Verification successful");
             } else {
                 sender.sendMessage("Verification failed, check that you typed the authentication token correctly");

@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -120,5 +121,20 @@ public class Request {
 
     public SSERequest sse(SSERequest.CloseHandler closeHandler) throws IOException {
         return new SSERequest(this.httpExchange, closeHandler);
+    }
+
+    public String getProxyIp() {
+        String forwardedFor = this.getHeader("x-forwarded-for");
+        if (forwardedFor == null) return "unknown";
+        String address = forwardedFor.split(",")[0];
+        try {
+            if (address.contains(":")) {
+                return String.join(":", Arrays.copyOfRange(InetAddress.getByName(address).getHostAddress().split(":"), 0, 4)) + "::/64";
+            } else {
+                return address;
+            }
+        } catch (Exception e) {
+            return "unknown";
+        }
     }
 }
