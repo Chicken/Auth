@@ -113,6 +113,7 @@ The permission node is for using the `/auth` command and is enabled by default.
 The Authorization plugin is an example application that can use the benefits of Authentication to lock down websites.
 It simply checks a given uuid and host pair for a configured permission node.
 Authorization doesn't support optional authentication.
+Permissions checks use a cache so permissions changes require about a minute to take effect.
 
 ### Endpoints
 
@@ -167,8 +168,8 @@ server {
     return 301 https://$host$request_uri;
 }
 
+# Https server, authentication layer
 server {
-  # Https server
   listen 443 ssl;
   listen [::]:443 ssl;
  
@@ -181,7 +182,8 @@ server {
 
   location / {
     # Arbitary port which has to be same as the one in the server block below
-    proxy_pass http://127.0.0.1:8400; # REPLACE ME
+    proxy_pass http://127.0.0.1:8000; # REPLACE ME
+    proxy_buffering off;
 
     # Checking the authentication
     auth_request /authentication-outpost/auth;
@@ -212,13 +214,18 @@ server {
   }
 }
 
+# Authorization layer, all requests are authenticated, proxy valid requests to the final web application
 server {
   # Arbitary unused port on localhost
-  listen 127.0.0.1:8400; # REPLACE ME
+  listen 127.0.0.1:8000; # REPLACE ME
+  
+  # The authentication layer already logs, we don't need internal logging
+  access_log off;
 
   location / {
     # Proxy to your final web application, for example a map
     proxy_pass http://127.0.0.1:8100; # REPLACE ME
+    proxy_buffering off;
     
     # Checking the authorization
     auth_request /authorization-outpost/auth;
