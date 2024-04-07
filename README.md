@@ -11,6 +11,7 @@ A pair of plugins for **authentication** and **authorization** of Minecraft play
 You can also find a bunch of plugins using this authentication system
 for BlueMap addons in [the BlueMap -folder](./BlueMap). Should these be in a seperate repository?
 Absolutely! Are they? No. Is Authorization the child that's not liked as other solutions are better? Yes.
+Prebuilt jars of everything can be found in GitHub releases.
 
 An authenticated BlueMap demo can be found at https://auth-dev.antti.codes/.
 The Minecraft server is also available at ip `auth-dev.antti.codes`.

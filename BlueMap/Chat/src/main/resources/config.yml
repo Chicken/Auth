@@ -1,3 +1,5 @@
 ip: "127.0.0.1"
 port: 8800
 
+read-auth: false
+read-only: false

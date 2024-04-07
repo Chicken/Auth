@@ -6,4 +6,5 @@ author: Antti
 description: Web chat integration for BlueMap
 depend:
   - BlueMap
+softdepend:
   - BlueMap-Auth

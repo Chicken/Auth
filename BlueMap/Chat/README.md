@@ -1,6 +1,6 @@
 # Auth/BlueMap/Chat
 
-Web chat integration for BlueMap. Requires the BlueMap-Auth integration plugin.
+Web chat integration for BlueMap. Requires the BlueMap-Auth integration plugin for extra functionality.
 
 ## Images
 
@@ -9,8 +9,10 @@ Web chat integration for BlueMap. Requires the BlueMap-Auth integration plugin.
 
 ## Configuration
 
-The only configuration is `ip` and `port`, which are the same as with the main projects in this repository.
-The default port is `8800`.
+The `ip` and `port` are the same as with the main projects in this repository. The default port is `8800`.
+
+If `read-auth` is `true`, chat is only visible to logged-in users.  
+If `read-only` is `true`, users can not send any messages from web.
 
 ## Endpoints
 

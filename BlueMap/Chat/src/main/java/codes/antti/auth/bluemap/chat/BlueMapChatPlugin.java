@@ -67,15 +67,30 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 			}
 
 			this.http.get("/stream", request -> {
+				if (this.config.getBoolean("read-auth", false)) {
+					String loggedIn = request.getHeader("x-minecraft-loggedin");
+					if (loggedIn == null || !loggedIn.equals("true")) {
+						request.respond(403);
+						return;
+					}
+				}
 				UUID uuid = UUID.randomUUID();
 				SSERequest sse = request.sse(() -> {
 					this.sessions.remove(uuid);
 				});
 				sse.ping();
+				JsonObject settingsObject = new JsonObject();
+				settingsObject.addProperty("type", "settings");
+				settingsObject.addProperty("readOnly", this.config.getBoolean("read-only", false));
+				sse.send(settingsObject);
 				this.sessions.put(uuid, sse);
 			});
 
 			this.http.post("/send", request -> {
+				if (this.config.getBoolean("read-only", false)) {
+					request.respond(405);
+					return;
+				}
 				String loggedIn = request.getHeader("x-minecraft-loggedin");
 				String uuid = request.getHeader("x-minecraft-uuid");
 				String username = request.getHeader("x-minecraft-username");

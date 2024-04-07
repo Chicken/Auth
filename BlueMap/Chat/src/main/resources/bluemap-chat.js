@@ -28,7 +28,6 @@ void async function() {
 
     const root = document.createElement("div");
     root.id = "chat-root";
-    document.body.insertBefore(root, document.getElementById("app"));
     const chatMessages = document.createElement("div");
     chatMessages.id = "chat-messages";
     root.appendChild(chatMessages);
@@ -72,9 +71,21 @@ void async function() {
     }
 
     const e = new EventSource("/addons/chat/stream");
+    e.onerror = () => {
+        console.log("[Chat/info] Chat requires login to send messages");
+    };
     e.onmessage = (event) => {
         const data = JSON.parse(event.data);
         switch (data.type) {
+            case "settings": {
+                if (data.readOnly) {
+                    console.log("[Chat/info] Chat is in read-only mode");
+                    root.removeChild(chatInput);
+                    chatMessages.style.height = "100%";
+                }
+                document.body.insertBefore(root, document.getElementById("app"));
+                break;
+            }
             case "chat": {
                 addMessage(data.username + ":" + nbps + data.message);
                 break;
