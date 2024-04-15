@@ -35,6 +35,7 @@ void async function() {
     chatInput.id = "chat-input";
     chatInput.placeholder = "Enter your message...";
     chatInput.maxLength = 256;
+    chatInput.enterKeyHint = "enter";
     root.appendChild(chatInput);
 
     if (!auth || !auth.loggedIn) {
