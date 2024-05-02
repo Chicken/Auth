@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 
 public class AuthenticationWebServer {
     private static final String SESSION_ID_COOKIE = "mc_auth_sid";
@@ -26,7 +27,6 @@ public class AuthenticationWebServer {
         this.loginPagePath = this.plugin.getDataFolder().toPath().resolve("web/login.html");
         FileConfiguration config = plugin.getConfig();
         this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8200));
-        final String root = "/";
         final boolean optionalAuth = config.getBoolean("optional_authentication", false);
 
 
@@ -81,7 +81,8 @@ public class AuthenticationWebServer {
             session = plugin.db.getSession(sessionId);
             if (session != null) {
                 if (session.playerUuid != null) {
-                    request.redirect(root);
+                    String redirectUri = Optional.ofNullable(request.getQuery().get("redirect")).orElse("/");
+                    request.redirect(redirectUri);
                     return;
                 }
                 request.setBody(formatLoginPage(session.authToken), "text/html");
@@ -101,36 +102,40 @@ public class AuthenticationWebServer {
 
         this.http.get("/logout", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
+            String redirectUri = Optional.ofNullable(request.getQuery().get("redirect")).orElse("/");
+
             if (sessionId == null) {
-                request.redirect(root);
+                request.redirect(redirectUri);
                 return;
             }
             Session session = plugin.db.getSession(sessionId);
             if (session == null || session.playerUuid == null) {
-                request.redirect(root);
+                request.redirect(redirectUri);
                 return;
             }
             plugin.db.deleteSession(sessionId);
             request.clearCookie(SESSION_ID_COOKIE);
-            request.redirect(root);
+            request.redirect(redirectUri);
         });
 
 
 
         this.http.get("/logout/all", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
+            String redirectUri = Optional.ofNullable(request.getQuery().get("redirect")).orElse("/");
+
             if (sessionId == null) {
-                request.redirect(root);
+                request.redirect(redirectUri);
                 return;
             }
             Session session = plugin.db.getSession(sessionId);
             if (session == null || session.playerUuid == null) {
-                request.redirect(root);
+                request.redirect(redirectUri);
                 return;
             }
             plugin.db.deleteAllSessions(session.playerUuid);
             request.clearCookie(SESSION_ID_COOKIE);
-            request.redirect(root);
+            request.redirect(redirectUri);
         });
 
 

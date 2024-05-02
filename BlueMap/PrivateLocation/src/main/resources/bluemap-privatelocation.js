@@ -16,7 +16,7 @@ void async function() {
         this.playerMarkerManager = new PlayerMarkerManager(
             this.mapViewer.markers,
             // map.data.dataUrl + "live/players.json", // Original
-            "/addons/privatelocation/players/" + map.data.id, // Changed
+            "./addons/privatelocation/players/" + map.data.id, // Changed
             map.data.dataUrl + "assets/playerheads/",
             this.events
         );

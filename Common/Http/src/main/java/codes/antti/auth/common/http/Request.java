@@ -8,9 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -42,10 +42,6 @@ public class Request {
         this.setBody(gson.toJson(object), "application/json");
     }
 
-    public void setBody(@NotNull String body) {
-        this.setBody(body, null);
-    }
-
     public void setBody(@NotNull String body, @Nullable String bodyType) {
         this.bodyType = bodyType;
         this.body = body;
@@ -60,7 +56,7 @@ public class Request {
     }
 
     public void respond(int statusCode) throws IOException {
-        if (this.responseCookies.size() > 0) setHeader("Set-Cookie", String.join("; ", responseCookies));
+        if (!this.responseCookies.isEmpty()) setHeader("Set-Cookie", String.join("; ", responseCookies));
         if (this.body != null) this.setHeader("Content-Type", Optional.ofNullable(bodyType).orElse("text/plain") + "; charset=UTF-8");
         if (this.body != null && this.getMethod().equals("GET")) {
             byte[] response = body.getBytes(StandardCharsets.UTF_8);
@@ -87,12 +83,23 @@ public class Request {
 
     public @Nullable String getHeader(@NotNull String key) {
         List<String> headers = this.httpExchange.getRequestHeaders().get(key);
-        if (headers != null && headers.size() != 0) return headers.get(0);
+        if (headers != null && !headers.isEmpty()) return headers.get(0);
         else return null;
     }
 
     public String getPath() {
         return this.httpExchange.getRequestURI().getPath();
+    }
+
+    public Map<String, String> getQuery() {
+        String query = this.httpExchange.getRequestURI().getQuery();
+        if (query == null) return new HashMap<>();
+        Map<String, String> result = new HashMap<>();
+        for (String part : query.split("&")) {
+            String[] parts = part.split("=");
+            if (parts.length == 2) result.put(parts[0], URLDecoder.decode(parts[1], StandardCharsets.UTF_8));
+        }
+        return result;
     }
 
     private String formatCookie(@NotNull String name, @NotNull String value, long expires) {

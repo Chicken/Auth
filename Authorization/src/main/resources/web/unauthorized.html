@@ -84,10 +84,12 @@
     <p>
         You are not authorized to use the application at <span class="code">{{host}}</span>.<br>
         This requires the <span class="code">{{permission}}</span> permission node. <br>
-        <a href="/authentication-outpost/logout"><button>Logout</button></a> <a href="/authentication-outpost/logout/all"><button>Logout all browsers</button></a>
+        <a class="auth" href="../authentication-outpost/logout"><button>Logout</button></a> <a class="auth" href="../authentication-outpost/logout/all"><button>Logout all browsers</button></a>
     </p>
 </div>
 <script>
+    const redirectUri = new URLSearchParams(window.location.search).get("redirect") || "/";
+    document.querySelectorAll("a.auth").forEach(el => el.href += `?redirect=${encodeURIComponent(redirectUri)}`);
     setInterval(() => {
         fetch("./auth")
             .then(res => {

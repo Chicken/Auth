@@ -1,7 +1,6 @@
 package codes.antti.auth.common.http;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 

@@ -46,7 +46,7 @@ void async function() {
     chatInput.addEventListener("keydown", (e) => {
         e.stopPropagation();
         if (e.key === "Enter") {
-            fetch("/addons/chat/send", {
+            fetch("./addons/chat/send", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -71,7 +71,7 @@ void async function() {
         }
     }
 
-    const e = new EventSource("/addons/chat/stream");
+    const e = new EventSource("./addons/chat/stream");
     e.onerror = () => {
         console.log("[Chat/info] Chat requires login to send messages");
     };

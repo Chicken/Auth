@@ -1,6 +1,6 @@
 @font-face {
     font-family: "minecraft";
-    src: url("/assets/minecraft.otf") format("opentype");
+    src: url("./minecraft.otf") format("opentype");
 }
 
 #chat-root {

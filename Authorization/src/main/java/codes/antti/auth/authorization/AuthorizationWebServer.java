@@ -56,7 +56,8 @@ public class AuthorizationWebServer {
             String permissionNode = config.getString("sites." + host);
             if (playerUuid != null && permissionNode != null) {
                 if (getPerm(playerUuid, permissionNode).get()) {
-                    request.redirect("/");
+                    String redirectUri = Optional.ofNullable(request.getQuery().get("redirect")).orElse("/");
+                    request.redirect(redirectUri);
                     return;
                 }
             }

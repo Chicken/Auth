@@ -1,4 +1,4 @@
 ip: "127.0.0.1"
 port: 8400
 
-auth-path: "/authentication-outpost/"
+auth-path: "./authentication-outpost/"

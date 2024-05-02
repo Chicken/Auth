@@ -3,7 +3,7 @@ void async function() {
 
     const logOutTemplate = document.createElement("template");
     logOutTemplate.innerHTML = `
-    <a style="text-decoration: none" href="{{auth-path}}logout">
+    <a style="text-decoration: none" href="{{auth-path}}logout?redirect=${encodeURIComponent(window.location.pathname)}">
         <div class="simple-button">
             <div class="label">Logout</div>
         </div>
@@ -13,7 +13,7 @@ void async function() {
 
     const logOutAllTemplate = document.createElement("template");
     logOutAllTemplate.innerHTML = `
-    <a style="text-decoration: none" href="{{auth-path}}logout/all">
+    <a style="text-decoration: none" href="{{auth-path}}logout/all?redirect=${encodeURIComponent(window.location.pathname)}">
         <div class="simple-button">
             <div class="label">Logout All Browsers</div>
         </div>
@@ -23,7 +23,7 @@ void async function() {
 
     const logInTemplate = document.createElement("template");
     logInTemplate.innerHTML = `
-    <a style="text-decoration: none" href="{{auth-path}}login">
+    <a style="text-decoration: none" href="{{auth-path}}login?redirect=${encodeURIComponent(window.location.pathname)}">
         <div class="simple-button">
             <div class="label">Log in</div>
         </div>
@@ -34,7 +34,7 @@ void async function() {
     const {
         uuid,
         username
-    } = await fetch("/addons/integration/whoami").then(r => r.json());
+    } = await fetch("./addons/integration/whoami").then(r => r.json());
 
     let userElement;
     if (uuid) {
@@ -42,7 +42,7 @@ void async function() {
         userTemplate.innerHTML = `
         <div style="display: flex; flex-direction: row; align-items: center; padding: .1em .5em;">
             <img
-                src="/maps/${window.bluemap.mapViewer.data.map.id}/assets/playerheads/${uuid}.png"
+                src="./maps/${window.bluemap.mapViewer.data.map.id}/assets/playerheads/${uuid}.png"
                 style="width: 28px; height: 28px; margin-right: 8px; border-radius: 2px;"
                 alt="Your playerhead" />
             ${username}
@@ -60,7 +60,7 @@ void async function() {
             if (uuid) {
                 buttonList.appendChild(logOutButton);
                 buttonList.appendChild(logOutAllButton);
-                userElement.children.item(0).src = `/maps/${window.bluemap.mapViewer.data.map.id}/assets/playerheads/${uuid}.png`
+                userElement.children.item(0).src = `./maps/${window.bluemap.mapViewer.data.map.id}/assets/playerheads/${uuid}.png`
                 buttonList.insertBefore(userElement, buttonList.childNodes[0]);
             } else {
                 buttonList.appendChild(logInButton);
