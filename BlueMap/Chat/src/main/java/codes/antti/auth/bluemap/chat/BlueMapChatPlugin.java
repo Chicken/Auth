@@ -44,6 +44,22 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 	}
 
 	@Override
+	public void onLoad() {
+		BlueMapAPI.onEnable(api -> {
+			try {
+				api.getWebApp().registerScript("assets/bluemap-chat.js");
+				api.getWebApp().registerStyle("assets/bluemap-chat.css");
+				copyResource("bluemap-chat.js");
+				copyResource("bluemap-chat.css");
+				copyResource("minecraft.otf");
+			} catch (IOException ex) {
+				getLogger().severe("Couldn't move chat resources to BlueMap!");
+				ex.printStackTrace();
+			}
+		});
+	}
+
+	@Override
 	public void onEnable() {
 		pingSchedule = scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
@@ -130,17 +146,6 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 
 			this.http.start();
 			getLogger().info("Webserver bound to " + this.http.getAddress());
-
-			try {
-				copyResource("bluemap-chat.js");
-				copyResource("bluemap-chat.css");
-				copyResource("minecraft.otf");
-				api.getWebApp().registerScript("assets/bluemap-chat.js");
-				api.getWebApp().registerStyle("assets/bluemap-chat.css");
-			} catch (IOException ex) {
-				getLogger().severe("Couldn't move chat resources to BlueMap!");
-				ex.printStackTrace();
-			}
 		});
 		BlueMapAPI.onDisable(api -> {
 			if (this.http != null) this.http.close();
