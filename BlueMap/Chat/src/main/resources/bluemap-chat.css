@@ -7,7 +7,7 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    width: min(calc(100vw - 3em), 600px);
+    width: min(calc(100vw - 4em), 600px);
     height: 300px;
     margin: 0;
     padding: 0;
@@ -53,4 +53,20 @@
     margin: 0;
     box-sizing: border-box;
     text-shadow: inherit;
+}
+
+#zoom-buttons > .chat-toggle {
+    display: none;
+    margin-bottom: 0.5em;
+}
+.control-bar > .chat-toggle {
+    display: block;
+}
+@media (max-width: 575.98px) {
+    #zoom-buttons > .chat-toggle {
+        display: block;
+    }
+    .control-bar > .chat-toggle {
+        display: none;
+    }
 }
