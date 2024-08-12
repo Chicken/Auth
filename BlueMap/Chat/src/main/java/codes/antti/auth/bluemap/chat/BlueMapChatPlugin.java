@@ -56,7 +56,8 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 				var intConfig = Objects.requireNonNull(plugin_manager.getPlugin("BlueMap-Auth"));
 				this.integrationConfig = intConfig.getConfig();
 				String integration = new String(Objects.requireNonNull(getResource("bluemap-chat.js")).readAllBytes(), StandardCharsets.UTF_8)
-						.replaceAll("\\{\\{auth-path}}", Objects.requireNonNull(this.integrationConfig.getString("auth-path", "/authentication-outpost/")));
+						.replaceAll("\\{\\{auth-path}}", Objects.requireNonNull(this.integrationConfig.getString("auth-path", "/authentication-outpost/")))
+						.replaceAll("\\{\\{web-chat-prefix}}", Objects.requireNonNull(this.integrationConfig.getString("web-chat-prefix", "[web]")));
 				Path chatPath = api.getWebApp().getWebRoot().resolve("assets/bluemap-chat.js");
 				Files.createDirectories(chatPath.getParent());
 				OutputStream out = Files.newOutputStream(chatPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);

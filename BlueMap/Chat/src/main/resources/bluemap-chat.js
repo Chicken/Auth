@@ -115,6 +115,13 @@ void async function() {
         }
     }
 
+    // Web chat prefix. Check if it's set. If not, use [web]
+    let wcp = "{{web-chat-prefix}}";
+    // It is replaced from java side. To prevent this if statement from being replaced, a little hack is used.
+    if (wcp === "{{" + "web-chat-prefix" + "}}") {
+        wcp = "[web]";
+    }
+
     const e = new EventSource("./addons/chat/stream");
     e.onerror = () => {
         console.log("[Chat/info] Chat requires login to receive messages");
@@ -138,7 +145,7 @@ void async function() {
                 break;
             }
             case "webchat": {
-                addMessage("[web]" + nbps + data.username + ":" + nbps + data.message);
+                addMessage(wcp + nbps + data.username + ":" + nbps + data.message);
                 break;
             }
             case "join": {
