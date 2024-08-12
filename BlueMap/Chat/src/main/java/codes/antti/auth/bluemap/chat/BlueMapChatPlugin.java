@@ -18,6 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -27,6 +28,7 @@ import java.util.concurrent.*;
 
 public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 	private Configuration config;
+	private Configuration integrationConfig;
 	private WebServer http;
 	private final ConcurrentHashMap<UUID, SSERequest> sessions = new ConcurrentHashMap<>();
 	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -46,12 +48,36 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 	@Override
 	public void onLoad() {
 		BlueMapAPI.onEnable(api -> {
+			var plugin_manager = getServer().getPluginManager();
+			boolean bmjs_moved = false;
+
+			// Copy edited js file
 			try {
+				var intConfig = Objects.requireNonNull(plugin_manager.getPlugin("BlueMap-Auth"));
+				this.integrationConfig = intConfig.getConfig();
+				String integration = new String(Objects.requireNonNull(getResource("bluemap-chat.js")).readAllBytes(), StandardCharsets.UTF_8)
+						.replaceAll("\\{\\{auth-path}}", Objects.requireNonNull(this.integrationConfig.getString("auth-path", "/authentication-outpost/")));
+				Path chatPath = api.getWebApp().getWebRoot().resolve("assets/bluemap-chat.js");
+				Files.createDirectories(chatPath.getParent());
+				OutputStream out = Files.newOutputStream(chatPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+				out.write(integration.getBytes(StandardCharsets.UTF_8));
+				out.close();
 				api.getWebApp().registerScript("assets/bluemap-chat.js");
+				bmjs_moved = true;
+			}
+			catch (Exception ex) {
+				getLogger().severe("Could not load bluemap-chat.js");
+				ex.printStackTrace();
+			}
+
+			try {
 				api.getWebApp().registerStyle("assets/bluemap-chat.css");
-				copyResource("bluemap-chat.js");
+
 				copyResource("bluemap-chat.css");
 				copyResource("minecraft.otf");
+				if (!bmjs_moved) {
+					copyResource("bluemap-chat.js");
+				}
 			} catch (IOException ex) {
 				getLogger().severe("Couldn't move chat resources to BlueMap!");
 				ex.printStackTrace();
@@ -67,7 +93,8 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 			}
 		}, 0, 30, TimeUnit.SECONDS);
 
-		getServer().getPluginManager().registerEvents(this, this);
+		var plugin_manager = getServer().getPluginManager();
+		plugin_manager.registerEvents(this, this);
 
 		BlueMapAPI.onEnable(api -> {
 			reloadConfig();
@@ -134,7 +161,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 					request.respond(400);
 					return;
 				}
-				getServer().broadcastMessage(String.format("[web] <%s> %s", username, messageString));
+				getServer().broadcastMessage(String.format("%s <%s> %s", config.getString("web-chat-prefix", "[web]"), username, messageString));
 				JsonObject messageObject = new JsonObject();
 				messageObject.addProperty("type", "webchat");
 				messageObject.addProperty("uuid", uuid);
