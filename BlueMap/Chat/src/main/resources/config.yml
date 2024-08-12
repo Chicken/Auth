@@ -4,3 +4,5 @@ web-chat-prefix: "[web]"
 
 read-auth: false
 read-only: false
+
+max-message-count: 100

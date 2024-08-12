@@ -103,6 +103,12 @@ void async function() {
         }
     });
 
+    // Max message count. Check if it's set. If not, use 100
+    let mmc = "{{max-message-count}}"
+    // It is replaced from java side. To prevent this if statement from being replaced, a little hack is used.
+    if (mmc === "{{" + "max-message-count" + "}}") {
+        mmc = "100";
+    }
     function addMessage(str, className) {
         const message = document.createElement("div");
         message.innerText = str;
@@ -110,7 +116,7 @@ void async function() {
             message.className = className;
         }
         chatMessages.insertBefore(message, chatMessages.firstChild);
-        if (chatMessages.children.length > 100) {
+        if (chatMessages.children.length > mmc.toString()) {
             chatMessages.removeChild(chatMessages.lastChild);
         }
     }
