@@ -14,6 +14,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
@@ -48,6 +49,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 	@Override
 	public void onLoad() {
 		BlueMapAPI.onEnable(api -> {
+			this.config = getConfig();
 			var plugin_manager = getServer().getPluginManager();
 			boolean bmjs_moved = false;
 
@@ -101,7 +103,6 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 		BlueMapAPI.onEnable(api -> {
 			reloadConfig();
 			saveDefaultConfig();
-			this.config = getConfig();
 
 			try {
 				this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8800));
@@ -206,6 +207,25 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 		message.addProperty("username", event.getPlayer().getName());
 		message.addProperty("message", event.getMessage());
 		forEachSession(sse -> sse.send(message));
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onServerCommand(ServerCommandEvent event) {
+		// Check if the command is a 'say' command
+		if (event.getCommand().startsWith("say ")) {
+			// Extract the message part of the command
+			String msg = event.getCommand().substring(4).trim(); // Skip the first 4 characters ("/say")
+
+			// Log the message
+			System.out.println("[Server Say] " + msg);
+
+			JsonObject message = new JsonObject();
+			message.addProperty("type", "chat");
+			message.addProperty("uuid", "0");
+			message.addProperty("username", "[Server]");
+			message.addProperty("message", msg);
+			forEachSession(sse -> sse.send(message));
+		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
