@@ -216,8 +216,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 			// Extract the message part of the command
 			String msg = event.getCommand().substring(4).trim(); // Skip the first 4 characters ("/say")
 
-			// Log the message
-			System.out.println("[Server Say] " + msg);
+			//System.out.println("[Server Say] " + msg);
 
 			JsonObject message = new JsonObject();
 			message.addProperty("type", "chat");
