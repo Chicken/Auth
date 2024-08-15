@@ -53,24 +53,29 @@ void async function() {
     root.appendChild(chatMessages);
     root.appendChild(toggleChatViewControl);
 
+    const chatInputWrapper = document.createElement("div");
+    chatInputWrapper.id = "chat-input-wrapper";
     const chatInput = document.createElement("input");
     chatInput.id = "chat-input";
     chatInput.placeholder = "Enter your message...";
     chatInput.maxLength = 256;
     chatInput.enterKeyHint = "enter";
-    root.appendChild(chatInput);
+    chatInputWrapper.appendChild(chatInput);
+    root.appendChild(chatInputWrapper);
     document.body.insertBefore(root, document.getElementById("app"));
 
-    if (!auth || !auth.loggedIn) {
+    function setupChatLoggedOut() {
         chatInput.disabled = true;
         chatInput.placeholder = "Log in to send messages";
-        root.classList.add("chat-logged-out");
+        chatInputWrapper.classList.add("chat-logged-out");
 
-        root.onclick = () => {
+        chatInputWrapper.onclick = () => {
             console.log("[Chat/info] Log in to send messages");
             window.location.href = `{{auth-path}}login?redirect=${encodeURIComponent(window.location.pathname)}`;
         }
     }
+
+    if (!auth || !auth.loggedIn) setupChatLoggedOut();
 
     const toggleBtnControl = document.createElement("div");
     toggleBtnControl.className = "svg-button chat-toggle";
@@ -199,9 +204,8 @@ void async function() {
 
     const e = new EventSource("./addons/chat/stream");
     e.onerror = () => {
-        console.log("[Chat/info] Chat requires login to receive messages");
-        chatInput.placeholder = "Log in to receive messages";
-        if (chatIsOpen) toggleChat()
+        setupChatLoggedOut();
+        if (chatIsOpen) toggleChat();
     };
     e.onmessage = (event) => {
         const data = JSON.parse(event.data);

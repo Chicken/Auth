@@ -28,12 +28,7 @@
     text-shadow: -2px 2px 0px black;
 }
 
-#chat-root.chat-logged-out:hover > #chat-input,
-#chat-root.chat-logged-out:active > #chat-input {
-    color: hsl(0, 0%, 60%);
-    cursor: pointer;
-    text-decoration: underline;
-}
+
 
 #chat-root.no-messages {
     grid-gap: 0;
@@ -52,16 +47,6 @@
     padding: 0;
     margin: 0;
 }
-
-#chat-root.chat-logged-out > #chat-input {
-    pointer-events: none;
-    user-select: none;
-}
-
-/*#chat-root.chat-logged-out > :not(#chat-input) {
-    display: none;
-    visibility: hidden;
-}*/
 
 #chat-messages, #chat-messages-popup {
     width: 100%;
@@ -90,15 +75,33 @@
     color: #fbd726;
 }
 
+#chat-input-wrapper {
+    grid-row: 2;
+    width: 100%;
+    height: 36px;
+    box-sizing: border-box;
+}
+#chat-input-wrapper.chat-logged-out > #chat-input {
+    pointer-events: none;
+    user-select: none;
+    cursor: pointer;
+}
+#chat-input-wrapper.chat-logged-out:hover > #chat-input,
+#chat-input-wrapper.chat-logged-out:active > #chat-input {
+    color: var(--theme-fg);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+}
+
 #chat-input {
     background-color: transparent;
     width: 100%;
-    height: 36px;
+    height: 100%;
     padding: 6px;
     margin: 0;
     box-sizing: border-box;
     text-shadow: inherit;
-    grid-row: 2;
 }
 
 #zoom-buttons > .chat-toggle {
