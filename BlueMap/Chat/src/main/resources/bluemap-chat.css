@@ -1,3 +1,7 @@
+/*TODO:
+   - Unable to select text while logged out.
+   */
+
 @font-face {
     font-family: "minecraft";
     src: url("./minecraft.otf") format("opentype");
@@ -6,7 +10,7 @@
 #chat-root {
     grid-auto-rows: 1fr auto;
     display: grid;
-    grid-auto-columns: auto;
+    grid-auto-columns: 1fr auto;
     grid-gap: 10px;
     position: absolute;
     bottom: 0;
@@ -24,10 +28,29 @@
     text-shadow: -2px 2px 0px black;
 }
 
-#chat-root.chat-logged-out:hover > #chat-input {
+#chat-root.chat-logged-out:hover > #chat-input,
+#chat-root.chat-logged-out:active > #chat-input {
     color: hsl(0, 0%, 60%);
     cursor: pointer;
     text-decoration: underline;
+}
+
+#chat-root.no-messages {
+    grid-gap: 0;
+}
+
+#chat-root.no-messages > #chat-messages,
+#chat-root.no-messages > #chat-messages-popup {
+    padding: 0;
+}
+
+#chat-root > .messages-div-hidden {
+    display: none;
+    visibility: hidden;
+    height: 0;
+    width: 0;
+    padding: 0;
+    margin: 0;
 }
 
 #chat-root.chat-logged-out > #chat-input {
@@ -40,7 +63,7 @@
     visibility: hidden;
 }*/
 
-#chat-messages {
+#chat-messages, #chat-messages-popup {
     width: 100%;
     height: 100%;
     padding: 6px;
@@ -51,17 +74,19 @@
     overflow-y: auto;
     gap: 4px;
     box-sizing: border-box;
+    grid-row: 1;
+    grid-column: 1/ span 2;
 }
 
-#chat-messages > div {
+#chat-messages > div, #chat-messages-popup > div {
     word-wrap: break-word;
 }
 
-#chat-messages > .death {
+#chat-messages > .death, #chat-messages-popup > .death {
     color: #ea3e3e;
 }
 
-#chat-messages > .joinquit {
+#chat-messages > .joinquit, #chat-messages-popup > .joinquit {
     color: #fbd726;
 }
 
@@ -73,7 +98,7 @@
     margin: 0;
     box-sizing: border-box;
     text-shadow: inherit;
-
+    grid-row: 2;
 }
 
 #zoom-buttons > .chat-toggle {
@@ -90,4 +115,23 @@
     .control-bar > .chat-toggle {
         display: none;
     }
+}
+
+#toggle-chat-view-control {
+    aspect-ratio: 1;
+    background-color: transparent;
+}
+
+#toggle-chat-view-control:hover {
+    background-color: var(--theme-bg-hover);
+}
+
+#toggle-chat-view-control:active {
+    background-color: var(--theme-fg-light);
+    color: var(--theme-bg)
+}
+
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
 }
