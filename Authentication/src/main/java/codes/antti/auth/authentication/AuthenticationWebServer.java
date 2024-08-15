@@ -50,7 +50,7 @@ public class AuthenticationWebServer {
                 else request.respond(401);
                 return;
             }
-            if (!request.getProxyIp().equals(session.ip)) {
+            if (!request.getProxyIp().equals(session.ip) && plugin.ipLock) {
                 plugin.db.deleteSession(sessionId);
                 if (optionalAuth) {
                     request.setHeader(X_LOGGEDIN_HEADER, "false");
