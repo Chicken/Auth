@@ -11,10 +11,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.event.server.ServerCommandEvent;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
@@ -24,12 +24,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
 
 public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 	private Configuration config;
-	private Configuration integrationConfig;
 	private WebServer http;
 	private final ConcurrentHashMap<UUID, SSERequest> sessions = new ConcurrentHashMap<>();
 	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -50,24 +50,27 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 	public void onLoad() {
 		BlueMapAPI.onEnable(api -> {
 			this.config = getConfig();
-			var plugin_manager = getServer().getPluginManager();
-			boolean bmjs_moved = false;
+			boolean bmjsMoved = false;
 
-			// Copy edited js file
 			try {
-				var intConfig = Objects.requireNonNull(plugin_manager.getPlugin("BlueMap-Auth"));
-				this.integrationConfig = intConfig.getConfig();
 				String integration = new String(Objects.requireNonNull(getResource("bluemap-chat.js")).readAllBytes(), StandardCharsets.UTF_8)
-						.replaceAll("\\{\\{auth-path}}", Objects.requireNonNull(this.integrationConfig.getString("auth-path", "/authentication-outpost/")))
 						.replaceAll("\\{\\{web-chat-prefix}}", Objects.requireNonNull(this.config.getString("web-chat-prefix", "[web]")))
 						.replaceAll("\\{\\{max-message-count}}", Objects.requireNonNull(this.config.getString("max-message-count", "100")));
+
+				Optional<String> authPath = Optional.ofNullable(getServer().getPluginManager().getPlugin("BlueMap-Auth"))
+						.map(plugin -> plugin.getConfig().getString("auth-path", "/authentication-outpost/"));
+
+				if (authPath.isPresent()) {
+					integration = integration.replaceAll("\\{\\{auth-path}}", authPath.get());
+				}
+
 				Path chatPath = api.getWebApp().getWebRoot().resolve("assets/bluemap-chat.js");
 				Files.createDirectories(chatPath.getParent());
 				OutputStream out = Files.newOutputStream(chatPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 				out.write(integration.getBytes(StandardCharsets.UTF_8));
 				out.close();
 				api.getWebApp().registerScript("assets/bluemap-chat.js");
-				bmjs_moved = true;
+				bmjsMoved = true;
 			}
 			catch (Exception ex) {
 				getLogger().severe("Could not load bluemap-chat.js");
@@ -79,7 +82,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 
 				copyResource("bluemap-chat.css");
 				copyResource("minecraft.otf");
-				if (!bmjs_moved) {
+				if (!bmjsMoved) {
 					copyResource("bluemap-chat.js");
 				}
 			} catch (IOException ex) {
@@ -97,8 +100,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 			}
 		}, 0, 30, TimeUnit.SECONDS);
 
-		var plugin_manager = getServer().getPluginManager();
-		plugin_manager.registerEvents(this, this);
+		getServer().getPluginManager().registerEvents(this, this);
 
 		BlueMapAPI.onEnable(api -> {
 			reloadConfig();
@@ -211,17 +213,25 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onServerCommand(ServerCommandEvent event) {
-		// Check if the command is a 'say' command
 		if (event.getCommand().startsWith("say ")) {
-			// Extract the message part of the command
-			String msg = event.getCommand().substring(4).trim(); // Skip the first 4 characters ("/say")
-
-			//System.out.println("[Server Say] " + msg);
-
+			String msg = event.getCommand().substring(4).trim();
 			JsonObject message = new JsonObject();
 			message.addProperty("type", "chat");
 			message.addProperty("uuid", "0");
 			message.addProperty("username", "[Server]");
+			message.addProperty("message", msg);
+			forEachSession(sse -> sse.send(message));
+		}
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onPlayerCommandSend(PlayerCommandPreprocessEvent event) {
+		if (event.getMessage().startsWith("/say ")) {
+			String msg = event.getMessage().substring(4).trim();
+			JsonObject message = new JsonObject();
+			message.addProperty("type", "chat");
+			message.addProperty("uuid", event.getPlayer().getUniqueId().toString());
+			message.addProperty("username", event.getPlayer().getName());
 			message.addProperty("message", msg);
 			forEachSession(sse -> sse.send(message));
 		}
