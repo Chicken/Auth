@@ -56,6 +56,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 
 				String integration = new String(Objects.requireNonNull(getResource("bluemap-chat.js")).readAllBytes(), StandardCharsets.UTF_8)
 						.replaceAll("\\{\\{web-chat-prefix}}", Objects.requireNonNull(this.config.getString("web-chat-prefix", "[web]")))
+						.replaceAll("\\{\\{empty-chat-message}}", Objects.requireNonNull(this.config.getString("empty-chat-message", "No messages yet")))
 						.replaceAll("\\{\\{max-message-count}}", Objects.requireNonNull(this.config.getString("max-message-count", "100")));
 
 				Optional<String> authPath = Optional.ofNullable(getServer().getPluginManager().getPlugin("BlueMap-Auth"))

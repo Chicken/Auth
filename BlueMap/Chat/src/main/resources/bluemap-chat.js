@@ -111,6 +111,7 @@ void async function() {
         chatIsOpen = !chatIsOpen;
     }
 
+    const emptyChatMessage = "{{empty-chat-message}}"
     let chatExpanded = false;
     function toggleExpanded() {
         if (chatExpanded) {
@@ -133,7 +134,7 @@ void async function() {
                 root.classList.remove("no-messages");
                 const message = document.createElement("div");
                 message.classList.add("empty-message");
-                message.innerText = "No messages yet";
+                message.innerText = emptyChatMessage;
                 chatMessages.insertBefore(message, chatMessages.firstChild);
             }
             chatExpanded = true;
