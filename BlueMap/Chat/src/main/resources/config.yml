@@ -6,4 +6,3 @@ read-only: false
 
 max-message-count: 100
 web-chat-prefix: "[web]"
-empty-chat-message: "No messages yet"
