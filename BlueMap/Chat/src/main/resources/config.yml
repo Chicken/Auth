@@ -1,8 +1,8 @@
 ip: "127.0.0.1"
 port: 8800
-web-chat-prefix: "[web]"
 
 read-auth: false
 read-only: false
 
 max-message-count: 100
+web-chat-prefix: "[web]"

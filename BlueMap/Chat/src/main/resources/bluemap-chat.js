@@ -33,15 +33,12 @@ void async function() {
     const root = document.createElement("div");
     root.id = "chat-root";
     root.style.display = "none";
-    // Messages Popup: The div for short term messages
     const messagesPopup = document.createElement("div");
     messagesPopup.id = "chat-messages-popup"
-    // Chat Messages: The div for long term messages
     const chatMessages = document.createElement("div");
     chatMessages.id = "chat-messages";
     chatMessages.classList.add("messages-div-hidden");
 
-    // Toggle Chat View Control: Button to toggle the view mode. located next to the text-box
     const toggleChatViewControl = document.createElement("div");
     toggleChatViewControl.id = "toggle-chat-view-control";
     toggleChatViewControl.classList.add("svg-button")
@@ -66,12 +63,20 @@ void async function() {
 
     function setupChatLoggedOut() {
         chatInput.disabled = true;
-        chatInput.placeholder = "Log in to send messages";
         chatInputWrapper.classList.add("chat-logged-out");
 
-        chatInputWrapper.onclick = () => {
-            console.log("[Chat/info] Log in to send messages");
-            window.location.href = `{{auth-path}}login?redirect=${encodeURIComponent(window.location.pathname)}`;
+        let authPath = "{{auth-path}}"
+
+        if (authPath === "{{"+"auth-path"+"}}") {
+            chatInput.placeholder = "Log in to send messages";
+            chatInputWrapper.onclick = () => {
+                console.log("[Chat/info] Log in to send messages");
+                window.location.href = `${authPath}login?redirect=${encodeURIComponent(window.location.pathname)}`;
+            }
+        }
+        else {
+            chatInputWrapper.classList.add("read-only");
+            chatInput.placeholder = "";
         }
     }
 
@@ -82,7 +87,7 @@ void async function() {
     toggleBtnControl.innerHTML = chatSvg;
     const toggleBtnZoom = toggleBtnControl.cloneNode(true);
     const spacer = document.createElement("div");
-    spacer.className = "space thin-hide"
+    spacer.className = "space thin-hide";
 
     const cb = document.querySelector(".control-bar");
     const cbReference = [...cb.children].find(el => el.className === "space thin-hide greedy");
@@ -113,10 +118,8 @@ void async function() {
             chatMessages.classList.add("messages-div-hidden");
             messagesPopup.classList.remove("messages-div-hidden");
             toggleChatViewControl.innerHTML = expandSvg;
-
-            if (messagesPopup.children.length === 0) {
-                root.classList.add("no-messages");
-            }
+            messagesPopup.innerHTML = "";
+            root.classList.add("no-messages");
             chatExpanded = false;
         }
         else {
@@ -124,8 +127,14 @@ void async function() {
             chatMessages.classList.remove("messages-div-hidden");
             messagesPopup.classList.add("messages-div-hidden");
             toggleChatViewControl.innerHTML = closeSvg;
-            if (chatMessages.children.length !== 0) {
+            root.classList.remove("no-messages");
+
+            if (chatMessages.children.length === 0) {
                 root.classList.remove("no-messages");
+                const message = document.createElement("div");
+                message.classList.add("empty-message");
+                message.innerText = "No messages yet";
+                chatMessages.insertBefore(message, chatMessages.firstChild);
             }
             chatExpanded = true;
         }
@@ -153,24 +162,22 @@ void async function() {
     });
 
     addEventListener("keydown", (e) => {
-            if (e.key === "t") {
-                toggleChat();
-                if (!chatExpanded) {
-                    toggleExpanded();
-                }
+        if (e.key === "t") {
+            toggleChat();
+            if (!chatExpanded) {
+                toggleExpanded();
+                chatInput.focus();
             }
         }
-    )
+    });
 
-    // Max message count. Check if it's set. If not, use 100
     let mmc = "{{max-message-count}}"
-    // It is replaced from java side. To prevent this if statement from being replaced, a little hack is used.
     if (mmc === "{{" + "max-message-count" + "}}") {
         mmc = "100";
     }
 
-
     function addMessage(str, className) {
+        chatMessages.querySelectorAll(".empty-message").forEach(el => el.remove());
         const message = document.createElement("div");
         message.innerText = str;
         if (className) {
@@ -195,9 +202,7 @@ void async function() {
         root.classList.remove("no-messages");
     }
 
-    // Web chat prefix. Check if it's set. If not, use [web]
     let wcp = "{{web-chat-prefix}}";
-    // It is replaced from java side. To prevent this if statement from being replaced, a little hack is used.
     if (wcp === "{{" + "web-chat-prefix" + "}}") {
         wcp = "[web]";
     }
@@ -213,8 +218,9 @@ void async function() {
             case "settings": {
                 if (data.readOnly) {
                     console.log("[Chat/info] Chat is in read-only mode");
-                    root.removeChild(chatInput);
-                    chatMessages.style.height = "100%";
+                    chatInputWrapper.classList.add("read-only");
+                    chatInput.placeholder = "";
+                    chatInput.disabled = true;
                 }
                 if (!chatIsOpen) toggleChat()
                 break;

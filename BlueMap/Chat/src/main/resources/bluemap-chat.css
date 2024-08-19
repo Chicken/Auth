@@ -1,7 +1,3 @@
-/*TODO:
-   - Unable to select text while logged out.
-   */
-
 @font-face {
     font-family: "minecraft";
     src: url("./minecraft.otf") format("opentype");
@@ -34,7 +30,6 @@
     grid-gap: 0;
 }
 
-#chat-root.no-messages > #chat-messages,
 #chat-root.no-messages > #chat-messages-popup {
     padding: 0;
 }
@@ -86,9 +81,15 @@
     user-select: none;
     cursor: pointer;
 }
+#chat-input-wrapper.read-only > #chat-input {
+    pointer-events: none;
+    user-select: none;
+    visibility: hidden;
+}
+
 #chat-input-wrapper.chat-logged-out:hover > #chat-input,
 #chat-input-wrapper.chat-logged-out:active > #chat-input {
-    color: var(--theme-fg);
+    color: white;
     cursor: pointer;
     text-decoration: underline;
     text-decoration-thickness: 2px;
@@ -123,15 +124,16 @@
 #toggle-chat-view-control {
     aspect-ratio: 1;
     background-color: transparent;
+    color: white;
 }
 
 #toggle-chat-view-control:hover {
-    background-color: var(--theme-bg-hover);
+    background-color: hsla(0, 20%, 10%, 0.2);
 }
 
 #toggle-chat-view-control:active {
-    background-color: var(--theme-fg-light);
-    color: var(--theme-bg)
+    background-color: hsla(0, 20%, 90%, 0.2);
+    color: #181818
 }
 
 .fade-out {
