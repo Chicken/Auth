@@ -172,9 +172,6 @@ void async function() {
     });
 
     let mmc = "{{max-message-count}}"
-    if (mmc === "{{" + "max-message-count" + "}}") {
-        mmc = "100";
-    }
 
     function addMessage(str, className) {
         chatMessages.querySelectorAll(".empty-message").forEach(el => el.remove());
@@ -203,9 +200,6 @@ void async function() {
     }
 
     let wcp = "{{web-chat-prefix}}";
-    if (wcp === "{{" + "web-chat-prefix" + "}}") {
-        wcp = "[web]";
-    }
 
     const e = new EventSource("./addons/chat/stream");
     e.onerror = () => {

@@ -13,10 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.server.ServerCommandEvent;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -50,9 +47,13 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 	public void onLoad() {
 		BlueMapAPI.onEnable(api -> {
 			this.config = getConfig();
-			boolean bmjsMoved = false;
 
 			try {
+				api.getWebApp().registerStyle("assets/bluemap-chat.css");
+
+				copyResource("bluemap-chat.css");
+				copyResource("minecraft.otf");
+
 				String integration = new String(Objects.requireNonNull(getResource("bluemap-chat.js")).readAllBytes(), StandardCharsets.UTF_8)
 						.replaceAll("\\{\\{web-chat-prefix}}", Objects.requireNonNull(this.config.getString("web-chat-prefix", "[web]")))
 						.replaceAll("\\{\\{max-message-count}}", Objects.requireNonNull(this.config.getString("max-message-count", "100")));
@@ -70,21 +71,6 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 				out.write(integration.getBytes(StandardCharsets.UTF_8));
 				out.close();
 				api.getWebApp().registerScript("assets/bluemap-chat.js");
-				bmjsMoved = true;
-			}
-			catch (Exception ex) {
-				getLogger().severe("Could not load bluemap-chat.js");
-				ex.printStackTrace();
-			}
-
-			try {
-				api.getWebApp().registerStyle("assets/bluemap-chat.css");
-
-				copyResource("bluemap-chat.css");
-				copyResource("minecraft.otf");
-				if (!bmjsMoved) {
-					copyResource("bluemap-chat.js");
-				}
 			} catch (IOException ex) {
 				getLogger().severe("Couldn't move chat resources to BlueMap!");
 				ex.printStackTrace();
@@ -94,11 +80,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 
 	@Override
 	public void onEnable() {
-		pingSchedule = scheduler.scheduleAtFixedRate(new Runnable() {
-			public void run() {
-				forEachSession(SSERequest::ping);
-			}
-		}, 0, 30, TimeUnit.SECONDS);
+		pingSchedule = scheduler.scheduleAtFixedRate(() -> forEachSession(SSERequest::ping), 0, 30, TimeUnit.SECONDS);
 
 		getServer().getPluginManager().registerEvents(this, this);
 
@@ -123,9 +105,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 					}
 				}
 				UUID uuid = UUID.randomUUID();
-				SSERequest sse = request.sse(() -> {
-					this.sessions.remove(uuid);
-				});
+				SSERequest sse = request.sse(() -> this.sessions.remove(uuid));
 				sse.ping();
 				JsonObject settingsObject = new JsonObject();
 				settingsObject.addProperty("type", "settings");
