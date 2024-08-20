@@ -3,3 +3,6 @@ port: 8800
 
 read-auth: false
 read-only: false
+
+max-message-count: 100
+web-chat-prefix: "[web]"

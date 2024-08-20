@@ -16,11 +16,13 @@ public final class AuthenticationPlugin extends JavaPlugin implements CommandExe
     AuthenticationWebServer server;
     AuthenticationDatabase db;
     private int userMaxSessions;
+    boolean ipLock;
 
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
         this.userMaxSessions = this.getConfig().getInt("user_max_sessions", 3);
+        this.ipLock = this.getConfig().getBoolean("ip_lock", true);
         File webRoot = getDataFolder().toPath().resolve("web").toFile();
         if (!webRoot.exists()) {
             boolean _ignored = webRoot.mkdirs();

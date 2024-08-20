@@ -11,17 +11,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
+import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
 
@@ -46,12 +46,31 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 	@Override
 	public void onLoad() {
 		BlueMapAPI.onEnable(api -> {
+			this.config = getConfig();
+
 			try {
 				api.getWebApp().registerScript("assets/bluemap-chat.js");
 				api.getWebApp().registerStyle("assets/bluemap-chat.css");
-				copyResource("bluemap-chat.js");
+
 				copyResource("bluemap-chat.css");
 				copyResource("minecraft.otf");
+
+				String integration = new String(Objects.requireNonNull(getResource("bluemap-chat.js")).readAllBytes(), StandardCharsets.UTF_8)
+						.replaceAll("\\{\\{web-chat-prefix}}", Objects.requireNonNull(this.config.getString("web-chat-prefix", "[web]")))
+						.replaceAll("\\{\\{max-message-count}}", Objects.requireNonNull(this.config.getString("max-message-count", "100")));
+
+				Optional<String> authPath = Optional.ofNullable(getServer().getPluginManager().getPlugin("BlueMap-Auth"))
+						.map(plugin -> plugin.getConfig().getString("auth-path", "/authentication-outpost/"));
+
+				if (authPath.isPresent()) {
+					integration = integration.replaceAll("\\{\\{auth-path}}", authPath.get());
+				}
+
+				Path chatPath = api.getWebApp().getWebRoot().resolve("assets/bluemap-chat.js");
+				Files.createDirectories(chatPath.getParent());
+				OutputStream out = Files.newOutputStream(chatPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+				out.write(integration.getBytes(StandardCharsets.UTF_8));
+				out.close();
 			} catch (IOException ex) {
 				getLogger().severe("Couldn't move chat resources to BlueMap!");
 				ex.printStackTrace();
@@ -61,18 +80,13 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 
 	@Override
 	public void onEnable() {
-		pingSchedule = scheduler.scheduleAtFixedRate(new Runnable() {
-			public void run() {
-				forEachSession(SSERequest::ping);
-			}
-		}, 0, 30, TimeUnit.SECONDS);
+		pingSchedule = scheduler.scheduleAtFixedRate(() -> forEachSession(SSERequest::ping), 0, 30, TimeUnit.SECONDS);
 
 		getServer().getPluginManager().registerEvents(this, this);
 
 		BlueMapAPI.onEnable(api -> {
 			reloadConfig();
 			saveDefaultConfig();
-			this.config = getConfig();
 
 			try {
 				this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8800));
@@ -91,9 +105,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 					}
 				}
 				UUID uuid = UUID.randomUUID();
-				SSERequest sse = request.sse(() -> {
-					this.sessions.remove(uuid);
-				});
+				SSERequest sse = request.sse(() -> this.sessions.remove(uuid));
 				sse.ping();
 				JsonObject settingsObject = new JsonObject();
 				settingsObject.addProperty("type", "settings");
@@ -134,7 +146,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 					request.respond(400);
 					return;
 				}
-				getServer().broadcastMessage(String.format("[web] <%s> %s", username, messageString));
+				getServer().broadcastMessage(String.format("%s <%s> %s", config.getString("web-chat-prefix", "[web]"), username, messageString));
 				JsonObject messageObject = new JsonObject();
 				messageObject.addProperty("type", "webchat");
 				messageObject.addProperty("uuid", uuid);
@@ -177,6 +189,32 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 		message.addProperty("username", event.getPlayer().getName());
 		message.addProperty("message", event.getMessage());
 		forEachSession(sse -> sse.send(message));
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onServerCommand(ServerCommandEvent event) {
+		if (event.getCommand().startsWith("say ")) {
+			String msg = event.getCommand().substring(4).trim();
+			JsonObject message = new JsonObject();
+			message.addProperty("type", "chat");
+			message.addProperty("uuid", "0");
+			message.addProperty("username", "[Server]");
+			message.addProperty("message", msg);
+			forEachSession(sse -> sse.send(message));
+		}
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onPlayerCommandSend(PlayerCommandPreprocessEvent event) {
+		if (event.getMessage().startsWith("/say ")) {
+			String msg = event.getMessage().substring(4).trim();
+			JsonObject message = new JsonObject();
+			message.addProperty("type", "chat");
+			message.addProperty("uuid", event.getPlayer().getUniqueId().toString());
+			message.addProperty("username", event.getPlayer().getName());
+			message.addProperty("message", msg);
+			forEachSession(sse -> sse.send(message));
+		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
