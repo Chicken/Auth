@@ -42,7 +42,7 @@ void async function() {
         userTemplate.innerHTML = `
         <div style="display: flex; flex-direction: row; align-items: center; padding: .1em .5em;">
             <img
-                src="./maps/${window.bluemap.mapViewer.data.map.id}/assets/playerheads/${uuid}.png"
+                src="./addons/integration/playerheads/${window.bluemap.mapViewer.data.map.id}/${uuid}"
                 style="width: 28px; height: 28px; margin-right: 8px; border-radius: 2px;"
                 alt="Your playerhead" />
             ${username}
@@ -60,7 +60,7 @@ void async function() {
             if (uuid) {
                 buttonList.appendChild(logOutButton);
                 buttonList.appendChild(logOutAllButton);
-                userElement.children.item(0).src = `./maps/${window.bluemap.mapViewer.data.map.id}/assets/playerheads/${uuid}.png`
+                userElement.children.item(0).src = `./addons/integration/playerheads/${window.bluemap.mapViewer.data.map.id}/${uuid}`
                 buttonList.insertBefore(userElement, buttonList.childNodes[0]);
             } else {
                 buttonList.appendChild(logInButton);

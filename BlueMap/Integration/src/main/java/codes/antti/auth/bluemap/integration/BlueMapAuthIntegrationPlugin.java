@@ -3,6 +3,7 @@ package codes.antti.auth.bluemap.integration;
 import codes.antti.auth.common.http.WebServer;
 import com.google.gson.JsonObject;
 import de.bluecolored.bluemap.api.BlueMapAPI;
+import de.bluecolored.bluemap.api.BlueMapMap;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class BlueMapAuthIntegrationPlugin extends JavaPlugin {
@@ -52,6 +54,28 @@ public final class BlueMapAuthIntegrationPlugin extends JavaPlugin {
 				response.addProperty("username", username);
 				request.json(response);
 				request.respond(200);
+			});
+
+			this.http.get("/playerheads/*", request -> {
+				String[] parts = request.getPath().split("/");
+				if (parts.length != 4) {
+					request.respond(400);
+					return;
+				}
+				String mapId = parts[2];
+				UUID uuid;
+				try {
+					uuid = UUID.fromString(parts[3]);
+				} catch (IllegalArgumentException ex) {
+					request.respond(400);
+					return;
+				}
+				Optional<BlueMapMap> map = api.getMap(mapId);
+				if (map.isEmpty()) {
+					request.respond(404);
+					return;
+				}
+				request.redirect(301, "../../../../" + BMSkin.getPlayerHeadIconAddress(api, uuid, map.get()));
 			});
 
 			this.http.start();
