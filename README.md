@@ -90,7 +90,8 @@ The `port` setting is by default `8200` and should be self-explanatory for someo
 The `optional_authentication` setting defines if users are forced to log in or not. When set to `true` the users
 can view the application without logging in and the application can choose to show its own guest mode and login button.
 
-`session_length_days`, `auth_token_length` and `user_max_sessions` are optional customizations you can do for the authentication.
+`ìp_lock`, `session_length_days`, `auth_token_length` and `user_max_sessions` are optional customizations you can do for the authentication.
+When `ip_lock` is true, sessions will be locked to one ip address and automatically log out if user's ip changes.
 `session_length_days` is the lifetime of a session in days.
 The default `31` means sessions expire after a month and then players need to reauthenticate.
 `auth_token_length` is the length of the random string given to players for the command to authenticate.

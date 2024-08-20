@@ -14,6 +14,9 @@ The `ip` and `port` are the same as with the main projects in this repository. T
 If `read-auth` is `true`, chat is only visible to logged-in users.  
 If `read-only` is `true`, users can not send any messages from web.
 
+`max-message-count` is amount of messages the web app stores in history.  
+`web-chat-prefix` is the prefix for messages sent from the web app.
+
 ## Endpoints
 
 *This section is only relevant for advanced usage.*
