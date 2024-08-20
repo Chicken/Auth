@@ -67,7 +67,7 @@ void async function() {
 
         let authPath = "{{auth-path}}"
 
-        if (authPath === "{{"+"auth-path"+"}}") {
+        if (authPath !== "{{"+"auth-path"+"}}") {
             chatInput.placeholder = "Log in to send messages";
             chatInputWrapper.onclick = () => {
                 console.log("[Chat/info] Log in to send messages");
@@ -114,16 +114,12 @@ void async function() {
     let chatExpanded = false;
     function toggleExpanded() {
         if (chatExpanded) {
-            // If viewing the div just for popups
             chatMessages.classList.add("messages-div-hidden");
             messagesPopup.classList.remove("messages-div-hidden");
             toggleChatViewControl.innerHTML = expandSvg;
             messagesPopup.innerHTML = "";
             root.classList.add("no-messages");
-            chatExpanded = false;
-        }
-        else {
-            // If viewing the expanded version
+        }  else {
             chatMessages.classList.remove("messages-div-hidden");
             messagesPopup.classList.add("messages-div-hidden");
             toggleChatViewControl.innerHTML = closeSvg;
@@ -136,8 +132,8 @@ void async function() {
                 message.innerText = "No messages yet";
                 chatMessages.insertBefore(message, chatMessages.firstChild);
             }
-            chatExpanded = true;
         }
+        chatExpanded = !chatExpanded;
     }
 
     toggleBtnControl.addEventListener("click", toggleChat);
@@ -161,7 +157,7 @@ void async function() {
         }
     });
 
-    addEventListener("keydown", (e) => {
+    window.addEventListener("keydown", (e) => {
         if (e.key === "t") {
             toggleChat();
             if (!chatExpanded) {
@@ -171,7 +167,7 @@ void async function() {
         }
     });
 
-    let mmc = "{{max-message-count}}"
+    const mmc = parseInt("{{max-message-count}}")
 
     function addMessage(str, className) {
         chatMessages.querySelectorAll(".empty-message").forEach(el => el.remove());
@@ -181,7 +177,7 @@ void async function() {
             message.className = className;
         }
         chatMessages.insertBefore(message, chatMessages.firstChild);
-        let pc = message.cloneNode(true);
+        const pc = message.cloneNode(true);
         messagesPopup.insertBefore(pc, messagesPopup.firstChild);
         setTimeout(() => {
             pc.classList.add("fade-out");
@@ -193,13 +189,13 @@ void async function() {
                 }
             }, 500)
         }, 5000)
-        if (chatMessages.children.length > mmc.toString()) {
+        if (chatMessages.children.length > mmc) {
             chatMessages.removeChild(chatMessages.lastChild);
         }
         root.classList.remove("no-messages");
     }
 
-    let wcp = "{{web-chat-prefix}}";
+    const wcp = "{{web-chat-prefix}}";
 
     const e = new EventSource("./addons/chat/stream");
     e.onerror = () => {

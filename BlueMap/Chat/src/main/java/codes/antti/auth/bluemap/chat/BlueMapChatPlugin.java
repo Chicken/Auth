@@ -49,6 +49,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 			this.config = getConfig();
 
 			try {
+				api.getWebApp().registerScript("assets/bluemap-chat.js");
 				api.getWebApp().registerStyle("assets/bluemap-chat.css");
 
 				copyResource("bluemap-chat.css");
@@ -70,7 +71,6 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 				OutputStream out = Files.newOutputStream(chatPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 				out.write(integration.getBytes(StandardCharsets.UTF_8));
 				out.close();
-				api.getWebApp().registerScript("assets/bluemap-chat.js");
 			} catch (IOException ex) {
 				getLogger().severe("Couldn't move chat resources to BlueMap!");
 				ex.printStackTrace();
