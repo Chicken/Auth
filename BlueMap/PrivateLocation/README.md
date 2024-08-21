@@ -2,7 +2,6 @@
 
 Only shows the currently logged in player on the map.
 Prevents seeing other players.
-You need to set `live-player-markers` to `false` in BlueMap's `plugin.conf` as this addon overwrites the system.
 
 ## Configuration
 
@@ -28,8 +27,7 @@ See [the BlueMap Integration example Nginx configuration](https://github.com/Chi
 And add the following in your application layer next to the Integration configuration:
 
 ```nginx
-  location /addons/privatelocation/ {
-    proxy_pass http://127.0.0.1:8500/;
-    proxy_buffering off;
+  location ~ ^/maps/([^/]*)/live/players.json {
+    proxy_pass http://127.0.0.1:8500/players/$1;
   }
 ```
