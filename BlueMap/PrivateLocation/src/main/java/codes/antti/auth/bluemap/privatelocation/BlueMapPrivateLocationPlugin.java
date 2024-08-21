@@ -4,6 +4,7 @@ import codes.antti.auth.common.http.WebServer;
 import com.google.gson.stream.JsonWriter;
 import de.bluecolored.bluemap.api.BlueMapAPI;
 import de.bluecolored.bluemap.api.BlueMapMap;
+import de.bluecolored.bluemap.api.BlueMapWorld;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -20,10 +21,7 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public final class BlueMapPrivateLocationPlugin extends JavaPlugin {
@@ -59,47 +57,40 @@ public final class BlueMapPrivateLocationPlugin extends JavaPlugin {
 					return;
 				}
 				String mapId = request.getPath().substring(9);
-				Optional<BlueMapMap> optionalMap = api.getMap(mapId);
-				if (optionalMap.isPresent()) {
-					if (!loggedIn.equals("true")) {
-						request.setBody("{\"players\":[]}", "application/json");
-						request.respond(200);
-						return;
-					}
-					if (playerUuid == null) {
-						request.respond(400);
-						return;
-					}
-					World world = getServer().getWorld(UUID.fromString(optionalMap.get().getWorld().getId()));
-					permCheck(playerUuid).thenAcceptAsync((perm) -> {
-						String response = getPlayersObject(world, UUID.fromString(playerUuid), perm);
-						request.setBody(response, "application/json");
-						try {
-							request.respond(200);
-						} catch (IOException ex) {
-							getLogger().severe("Failed to send response");
-							ex.printStackTrace();
-						}
-					});
-				} else {
+				Optional<BlueMapMap> map = api.getMap(mapId);
+				if (map.isEmpty()) {
 					request.respond(404);
+					return;
 				}
+				if (!loggedIn.equals("true")) {
+					request.setBody("{\"players\":[]}", "application/json");
+					request.respond(200);
+					return;
+				}
+				if (playerUuid == null) {
+					request.respond(400);
+					return;
+				}
+				BlueMapWorld targetWorld = map.get().getWorld();
+				Optional<World> world = getServer().getWorlds().stream().filter((w) -> api.getWorld(w).map((bmw) -> bmw.equals(targetWorld)).orElse(false)).findFirst();
+				if (world.isEmpty()) {
+					request.respond(404);
+					return;
+				}
+				canSeeEveryone(playerUuid).thenAcceptAsync((showAll) -> {
+					String response = getPlayersObject(api, map.get(), world.get(), UUID.fromString(playerUuid), showAll);
+					request.setBody(response, "application/json");
+					try {
+						request.respond(200);
+					} catch (IOException ex) {
+						getLogger().severe("Failed to send response");
+						ex.printStackTrace();
+					}
+				});
 			});
 
 			this.http.start();
 			getLogger().info("Webserver bound to " + this.http.getAddress());
-
-			try {
-				Path scriptPath = api.getWebApp().getWebRoot().resolve("assets/bluemap-privatelocation.js");
-				Files.createDirectories(scriptPath.getParent());
-			    OutputStream out = Files.newOutputStream(scriptPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-				out.write(Objects.requireNonNull(getResource("bluemap-privatelocation.js")).readAllBytes());
-				out.close();
-				api.getWebApp().registerScript("assets/bluemap-privatelocation.js");
-			} catch (IOException ex) {
-				getLogger().severe("Couldn't move integration resources to BlueMap!");
-				ex.printStackTrace();
-			}
 		});
 		BlueMapAPI.onDisable(api -> {
 			if (this.http != null) this.http.close();
@@ -107,7 +98,7 @@ public final class BlueMapPrivateLocationPlugin extends JavaPlugin {
 		getLogger().info("BlueMap-PrivateLocation enabled");
 	}
 
-	public String getPlayersObject(World world, UUID playerUuid, boolean showAll) {
+	public String getPlayersObject(BlueMapAPI api, BlueMapMap map, World world, UUID playerUuid, boolean showAll) {
 		try (StringWriter jsonString = new StringWriter();
 			 JsonWriter json = new JsonWriter(jsonString)) {
 
@@ -117,6 +108,12 @@ public final class BlueMapPrivateLocationPlugin extends JavaPlugin {
 			Player[] players = showAll ? getServer().getOnlinePlayers().toArray(Player[]::new) : new Player[]{ this.getServer().getPlayer(playerUuid) };
 			for (Player player : players) {
 				if (player != null && player.isOnline()) {
+					try {
+						BMSkin.createPlayerHeadIfNotExists(api, map, playerUuid);
+					} catch (IOException ex) {
+						ex.printStackTrace();
+					}
+
 					json.beginObject();
 					json.name("uuid").value(player.getUniqueId().toString());
 					json.name("name").value(player.getName());
@@ -150,7 +147,7 @@ public final class BlueMapPrivateLocationPlugin extends JavaPlugin {
 		}
 	}
 
-	public CompletableFuture<Boolean> permCheck(@NotNull String uuid) {
+	public CompletableFuture<Boolean> canSeeEveryone(@NotNull String uuid) {
 		Boolean cached = permissionCache.get(uuid);
 		Long expiry = permissionCacheExpiry.get(uuid);
 		if (expiry != null && expiry < System.currentTimeMillis()) {

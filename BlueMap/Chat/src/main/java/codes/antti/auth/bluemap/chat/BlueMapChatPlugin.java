@@ -46,6 +46,8 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 	@Override
 	public void onLoad() {
 		BlueMapAPI.onEnable(api -> {
+			reloadConfig();
+			saveDefaultConfig();
 			this.config = getConfig();
 
 			try {
@@ -85,9 +87,6 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(this, this);
 
 		BlueMapAPI.onEnable(api -> {
-			reloadConfig();
-			saveDefaultConfig();
-
 			try {
 				this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8800));
 			} catch (IOException ex) {
