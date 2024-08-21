@@ -56,26 +56,29 @@ public final class BlueMapAuthIntegrationPlugin extends JavaPlugin {
 				request.respond(200);
 			});
 
-			this.http.get("/playerheads/*", request -> {
+			this.http.get("/playerhead/*", request -> {
+				String loggedIn = request.getHeader("x-minecraft-loggedin");
+				String uuid = request.getHeader("x-minecraft-uuid");
+				if (loggedIn == null || (loggedIn.equals("true") && uuid == null)) {
+					request.respond(400);
+					return;
+				}
+				if (!loggedIn.equals("true")) {
+					request.respond(400);
+					return;
+				}
 				String[] parts = request.getPath().split("/");
-				if (parts.length != 4) {
+				if (parts.length != 3) {
 					request.respond(400);
 					return;
 				}
 				String mapId = parts[2];
-				UUID uuid;
-				try {
-					uuid = UUID.fromString(parts[3]);
-				} catch (IllegalArgumentException ex) {
-					request.respond(400);
-					return;
-				}
 				Optional<BlueMapMap> map = api.getMap(mapId);
 				if (map.isEmpty()) {
 					request.respond(404);
 					return;
 				}
-				request.redirect(301, "../../../../" + BMSkin.getPlayerHeadIconAddress(api, uuid, map.get()));
+				request.redirect(301, "../../../../" + BMSkin.getPlayerHeadIconAddress(api, UUID.fromString(uuid), map.get()));
 			});
 
 			this.http.start();
