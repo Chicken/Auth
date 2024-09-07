@@ -78,7 +78,7 @@ public final class BlueMapAuthIntegrationPlugin extends JavaPlugin {
 					request.respond(404);
 					return;
 				}
-				request.redirect(301, "../../../../" + BMSkin.getPlayerHeadIconAddress(api, UUID.fromString(uuid), map.get()));
+				request.redirect(301, "../../../" + BMSkin.getPlayerHeadIconAddress(api, UUID.fromString(uuid), map.get()));
 			});
 
 			this.http.start();
