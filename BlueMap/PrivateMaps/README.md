@@ -46,8 +46,13 @@ Change
 ```
 to
 ```nginx
-  # Go through PrivateMaps
+  # Everything by default to BlueMap
   location / {
+    proxy_pass http://127.0.0.1:8100;
+    proxy_buffering off;
+  }
+  # Go through PrivateMaps
+  location /maps/ {
     # Arbitary port which has to be same as the one in the server block below
     proxy_pass http://127.0.0.1:7999; # REPLACE ME
     proxy_buffering off;
