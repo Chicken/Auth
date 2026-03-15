@@ -6,10 +6,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.security.SecureRandom;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 public class AuthenticationDatabase extends Database {
@@ -17,38 +18,37 @@ public class AuthenticationDatabase extends Database {
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
     private final HashMap<String, Session> sessionCache = new HashMap<>();
     private final HashMap<String, Long> sessionCacheExpiry = new HashMap<>();
-    private final AuthenticationPlugin plugin;
     private static final long CACHE_SECONDS = 60;
-    private int authTokenLength;
-    public long sessionLength;
+    private final int authTokenLength;
+    public final long sessionLength;
 
     public AuthenticationDatabase(@NotNull AuthenticationPlugin plugin) throws SQLException {
         super(plugin.getDataFolder().getAbsolutePath() + "/db.sqlite");
-        this.plugin = plugin;
-        this.authTokenLength = this.plugin.getConfig().getInt("auth_token_length", 7);
-        this.sessionLength = this.plugin.getConfig().getLong("session_length_days", 31) * 24 * 60 * 60;
+        this.authTokenLength = plugin.getConfig().getInt("auth_token_length", 7);
+        this.sessionLength = plugin.getConfig().getLong("session_length_days", 31) * 24 * 60 * 60;
 
-        this.update(
-                "CREATE TABLE IF NOT EXISTS meta (" +
-                        "key text NOT NULL," +
-                        "value text DEFAULT NULL," +
-                        "PRIMARY KEY (key)" +
-                        ")"
+        this.update("""
+            CREATE TABLE IF NOT EXISTS meta (
+                key text NOT NULL,
+                value text DEFAULT NULL,
+                PRIMARY KEY (key)
+            )
+            """);
+
+        Integer schemaVersion = this.query(
+            "SELECT value FROM meta WHERE key = 'schema'",
+            rs -> {
+                if (!rs.next()) return null;
+                try {
+                    return Integer.parseInt(rs.getString("value"));
+                } catch (NumberFormatException e) {
+                    throw new SQLException("Invalid schema version");
+                }
+            }
         );
 
-        ResultSet res = this.query("SELECT value FROM meta WHERE key = ?", "schema");
-        int schemaVersion;
-        if (res.next()) {
-            try {
-                schemaVersion = Integer.parseInt(res.getString("value"));
-            } catch (NumberFormatException e) {
-                throw new SQLException("Invalid schema version");
-            }
-        } else {
-            this.update(
-                    "INSERT INTO meta VALUES (?, ?)",
-                    "schema", "0"
-            );
+        if (schemaVersion == null) {
+            this.update("INSERT INTO meta VALUES (?, ?)", "schema", "0");
             schemaVersion = 0;
         }
 
@@ -56,40 +56,30 @@ public class AuthenticationDatabase extends Database {
         if (schemaVersion < 0 || schemaVersion > codeSchemaVersion) throw new SQLException("Invalid schema version");
 
         if (schemaVersion < 1) {
-            this.update(
-                    "CREATE TABLE IF NOT EXISTS sessions (" +
-                            "session_id text PRIMARY KEY NOT NULL," +
-                            "auth_token text UNIQUE NOT NULL," +
-                            "expires integer NOT NULL," +
-                            "player_uuid text DEFAULT NULL" +
-                            ")"
-            );
+            this.update("""
+                CREATE TABLE IF NOT EXISTS sessions (
+                    session_id text PRIMARY KEY NOT NULL,
+                    auth_token text UNIQUE NOT NULL,
+                    expires integer NOT NULL,
+                    player_uuid text DEFAULT NULL
+                )
+                """);
         }
 
         if (schemaVersion < 2) {
-            this.update(
-                    "DELETE FROM sessions"
-            );
-            this.update(
-                    "ALTER TABLE sessions ADD COLUMN username text DEFAULT NULL"
-            );
+            this.update("DELETE FROM sessions");
+            this.update("ALTER TABLE sessions ADD COLUMN username text DEFAULT NULL");
         }
 
         if (schemaVersion < 3) {
-            this.update(
-                    "DELETE FROM sessions"
-            );
-            this.update(
-                    "ALTER TABLE sessions ADD COLUMN ip text NOT NULL DEFAULT 'unknown'"
-            );
-            this.update(
-                    "ALTER TABLE sessions RENAME COLUMN expires TO created_at"
-            );
+            this.update("DELETE FROM sessions");
+            this.update("ALTER TABLE sessions ADD COLUMN ip text NOT NULL DEFAULT 'unknown'");
+            this.update("ALTER TABLE sessions RENAME COLUMN expires TO created_at");
         }
 
         this.update(
-                "UPDATE meta SET value = ? WHERE key = ?",
-                Integer.toString(codeSchemaVersion), "schema"
+            "UPDATE meta SET value = ? WHERE key = ?",
+            Integer.toString(codeSchemaVersion), "schema"
         );
 
         this.update("DELETE FROM sessions WHERE created_at < ?", getUnixTime() - sessionLength);
@@ -105,6 +95,7 @@ public class AuthenticationDatabase extends Database {
         public String username;
         @NotNull
         public String ip;
+
         public Session(@NotNull String sessionId, @NotNull String authToken, long createdAt, @Nullable String playerUuid, @Nullable String username, @NotNull String ip) {
             this.sessionId = sessionId;
             this.authToken = authToken;
@@ -127,20 +118,20 @@ public class AuthenticationDatabase extends Database {
 
     private static String generateNewAuthToken(int length) {
         return new Random().ints(48, 90 + 1)
-                .filter(i -> i <= 57 || i >= 65)
-                .limit(length)
-                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-                .toString();
+            .filter(i -> i <= 57 || i >= 65)
+            .limit(length)
+            .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+            .toString();
     }
 
     public Session createSession(String ip) throws SQLException {
         Session session = new Session(
-                generateNewSessionId(),
-                generateNewAuthToken(authTokenLength),
-                getUnixTime(),
-                null,
-                null,
-                ip
+            generateNewSessionId(),
+            generateNewAuthToken(authTokenLength),
+            getUnixTime(),
+            null,
+            null,
+            ip
         );
         this.update("INSERT INTO sessions VALUES (?, ?, ?, ?, ?, ?)", session.sessionId, session.authToken, session.createdAt, session.playerUuid, session.username, session.ip);
         return session;
@@ -156,18 +147,21 @@ public class AuthenticationDatabase extends Database {
             cached = null;
         }
         if (cached != null) return cached;
-        ResultSet res = this.query("SELECT auth_token, created_at, player_uuid, username, ip FROM sessions WHERE session_id = ?", sessionId);
-        if (!res.next()) return null;
-        String authToken = res.getString("auth_token");
-        long createdAt = res.getLong("created_at");
-        String uuid = res.getString("player_uuid");
-        String username = res.getString("username");
-        String ip = res.getString("ip");
-        if (createdAt < getUnixTime() - sessionLength) {
+
+        Session session = this.query(
+            "SELECT auth_token, created_at, player_uuid, username, ip FROM sessions WHERE session_id = ?",
+            rs -> {
+                if (!rs.next()) return null;
+                return new Session(sessionId, rs.getString("auth_token"), rs.getLong("created_at"), rs.getString("player_uuid"), rs.getString("username"), rs.getString("ip"));
+            },
+            sessionId
+        );
+
+        if (session == null) return null;
+        if (session.createdAt < getUnixTime() - sessionLength) {
             this.deleteSession(sessionId);
             return null;
         }
-        Session session = new Session(sessionId, authToken, createdAt, uuid, username, ip);
         sessionCache.put(sessionId, session);
         sessionCacheExpiry.put(sessionId, System.currentTimeMillis() + CACHE_SECONDS * 1000);
         return session;
@@ -179,22 +173,40 @@ public class AuthenticationDatabase extends Database {
     }
 
     public void deleteAllSessions(@NotNull String uuid) throws SQLException {
-        ResultSet res = this.query("SELECT session_id FROM sessions WHERE player_uuid = ?", uuid);
-        while (res.next()) {
-            this.deleteSession(res.getString("session_id"));
+        List<String> sessionIds = this.query(
+            "SELECT session_id FROM sessions WHERE player_uuid = ?",
+            rs -> {
+                List<String> ids = new ArrayList<>();
+                while (rs.next()) ids.add(rs.getString("session_id"));
+                return ids;
+            },
+            uuid
+        );
+        for (String id : sessionIds) {
+            this.deleteSession(id);
         }
     }
 
     public int getSessionsCount(@NotNull String uuid) throws SQLException {
-        ResultSet res = this.query("SELECT COUNT(*) FROM sessions WHERE player_uuid = ?", uuid);
-        if (!res.next()) return 0;
-        return res.getInt(1);
+        return this.query(
+            "SELECT COUNT(*) FROM sessions WHERE player_uuid = ?",
+            rs -> rs.next() ? rs.getInt(1) : 0,
+            uuid
+        );
     }
 
     public void deleteOldestSessions(@NotNull String uuid, int limit) throws SQLException {
-        ResultSet res = this.query("SELECT session_id FROM sessions WHERE player_uuid = ? ORDER BY created_at ASC LIMIT ?", uuid, limit);
-        while (res.next()) {
-            this.deleteSession(res.getString("session_id"));
+        List<String> sessionIds = this.query(
+            "SELECT session_id FROM sessions WHERE player_uuid = ? ORDER BY created_at ASC LIMIT ?",
+            rs -> {
+                List<String> ids = new ArrayList<>();
+                while (rs.next()) ids.add(rs.getString("session_id"));
+                return ids;
+            },
+            uuid, limit
+        );
+        for (String id : sessionIds) {
+            this.deleteSession(id);
         }
     }
 
@@ -207,11 +219,13 @@ public class AuthenticationDatabase extends Database {
      * Returns `true` if verification was successful, `false` otherwise
      */
     public boolean verifySession(@NotNull String authToken, @NotNull String uuid, @NotNull String username) throws SQLException {
-        ResultSet existingRes = this.query("SELECT * FROM sessions WHERE auth_token = ?", authToken);
-        if (!existingRes.next()) return false;
-        if (existingRes.getString("player_uuid") != null) return false;
+        String sessionId = this.query(
+            "SELECT session_id FROM sessions WHERE auth_token = ? AND player_uuid IS NULL",
+            rs -> rs.next() ? rs.getString("session_id") : null,
+            authToken
+        );
+        if (sessionId == null) return false;
         this.update("UPDATE sessions SET player_uuid = ?, username = ? WHERE auth_token = ?", uuid, username, authToken);
-        String sessionId = existingRes.getString("session_id");
         sessionCache.remove(sessionId);
         sessionCacheExpiry.remove(sessionId);
         return true;

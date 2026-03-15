@@ -33,9 +33,9 @@ public class BMSkin {
     }
 
     public static void createPlayerHeadIfNotExists(
-            final @NotNull BlueMapAPI blueMapAPI,
-            final @NotNull BlueMapMap map,
-            final @NotNull UUID playerUUID
+        final @NotNull BlueMapAPI blueMapAPI,
+        final @NotNull BlueMapMap map,
+        final @NotNull UUID playerUUID
     ) throws IOException {
         final String assetName = "playerheads/" + playerUUID + ".png";
         if (map.getAssetStorage().assetExists(assetName)) return;
@@ -48,7 +48,7 @@ public class BMSkin {
 
             try (OutputStream out = map.getAssetStorage().writeAsset(assetName)) {
                 final BufferedImage head = blueMapAPI.getPlugin().getPlayerMarkerIconFactory()
-                        .apply(playerUUID, oImgSkin.get());
+                    .apply(playerUUID, oImgSkin.get());
                 ImageIO.write(head, "png", out);
             } catch (IOException e) {
                 throw new IOException("Failed to write " + playerUUID + "'s head to asset-storage", e);

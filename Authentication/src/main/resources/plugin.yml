@@ -1,7 +1,7 @@
 name: Authentication
 version: '${version}'
 main: codes.antti.auth.authentication.AuthenticationPlugin
-api-version: 1.13
+api-version: 1.16
 author: Antti
 description: Authentication of Minecraft players in web applications
 

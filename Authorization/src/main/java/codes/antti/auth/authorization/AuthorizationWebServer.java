@@ -13,13 +13,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AuthorizationWebServer {
     private final WebServer http;
     private final UserManager userManager;
     private final Path unauthorizedPagePath;
-    private final HashMap<String, Boolean> permissionCache = new HashMap<>();
-    private final HashMap<String, Long> permissionCacheExpiry = new HashMap<>();
+    private final ConcurrentHashMap<String, Boolean> permissionCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Long> permissionCacheExpiry = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, CompletableFuture<Boolean>> inFlight = new ConcurrentHashMap<>();
     private static final long CACHE_SECONDS = 60;
 
     public AuthorizationWebServer(AuthorizationPlugin plugin) throws IOException {
@@ -49,7 +51,6 @@ public class AuthorizationWebServer {
         });
 
 
-
         this.http.get("/unauthorized", request -> {
             String host = request.getHeader("host");
             String playerUuid = request.getHeader("x-minecraft-uuid");
@@ -72,18 +73,17 @@ public class AuthorizationWebServer {
                 e.printStackTrace();
             }
             String unauthorizedPage =
-                    rawUnauthorizedPage
-                            .replaceAll("\\{\\{host}}", host)
-                            .replaceAll("\\{\\{permission}}", String.valueOf(permissionNode))
-                            .replaceAll("\\{\\{uuid}}", String.valueOf(playerUuid))
-                            .replaceAll("\\{\\{name}}", String.valueOf(playerName));
+                rawUnauthorizedPage
+                    .replaceAll("\\{\\{host}}", host)
+                    .replaceAll("\\{\\{permission}}", String.valueOf(permissionNode))
+                    .replaceAll("\\{\\{uuid}}", String.valueOf(playerUuid))
+                    .replaceAll("\\{\\{name}}", String.valueOf(playerName));
 
             request.setBody(unauthorizedPage, "text/html");
             request.respond(200);
         });
 
         this.http.serveStatic("/unauthorized/", plugin.getDataFolder().toPath().resolve("web"));
-
 
 
         this.http.start();
@@ -93,22 +93,28 @@ public class AuthorizationWebServer {
     private CompletableFuture<Boolean> getPerm(@NotNull String uuid, @NotNull String permissionNode) {
         Boolean cached = permissionCache.get(uuid);
         Long expiry = permissionCacheExpiry.get(uuid);
-        if (expiry != null && expiry < System.currentTimeMillis()) {
-            permissionCache.remove(uuid);
-            permissionCacheExpiry.remove(uuid);
-            cached = null;
-        }
-        if (cached != null) {
+        if (cached != null && expiry != null && expiry >= System.currentTimeMillis()) {
             return CompletableFuture.completedFuture(cached);
-        } else {
-            CompletableFuture<User> userFuture = this.userManager.loadUser(UUID.fromString(uuid));
-            return userFuture.thenApplyAsync(user -> {
-                boolean value = user.getCachedData().getPermissionData().checkPermission(permissionNode).asBoolean();
-                permissionCache.put(uuid, value);
-                permissionCacheExpiry.put(uuid, System.currentTimeMillis() + CACHE_SECONDS * 1000);
-                return value;
-            });
         }
+        CompletableFuture<Boolean> myFuture = new CompletableFuture<>();
+        CompletableFuture<Boolean> existing = inFlight.putIfAbsent(uuid, myFuture);
+        if (existing != null) {
+            return existing;
+        }
+        UUID parsedUuid = UUID.fromString(uuid);
+        User cachedUser = this.userManager.getUser(parsedUuid);
+        (cachedUser != null ? CompletableFuture.completedFuture(cachedUser) : this.userManager.loadUser(parsedUuid)).thenAcceptAsync(user -> {
+            boolean value = user.getCachedData().getPermissionData().checkPermission(permissionNode).asBoolean();
+            permissionCache.put(uuid, value);
+            permissionCacheExpiry.put(uuid, System.currentTimeMillis() + CACHE_SECONDS * 1000);
+            inFlight.remove(uuid);
+            myFuture.complete(value);
+        }).exceptionally(ex -> {
+            inFlight.remove(uuid);
+            myFuture.completeExceptionally(ex);
+            return null;
+        });
+        return myFuture;
     }
 
     public void close() {

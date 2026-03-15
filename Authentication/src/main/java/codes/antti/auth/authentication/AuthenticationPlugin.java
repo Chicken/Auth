@@ -73,7 +73,8 @@ public final class AuthenticationPlugin extends JavaPlugin implements CommandExe
         try {
             if (this.db.verifySession(authToken, player.getUniqueId().toString(), player.getName())) {
                 int sessionsCount = this.db.getSessionsCount(player.getUniqueId().toString());
-                if (sessionsCount > this.userMaxSessions) this.db.deleteOldestSessions(player.getUniqueId().toString(), sessionsCount - this.userMaxSessions);
+                if (sessionsCount > this.userMaxSessions)
+                    this.db.deleteOldestSessions(player.getUniqueId().toString(), sessionsCount - this.userMaxSessions);
                 sender.sendMessage("Verification successful");
             } else {
                 sender.sendMessage("Verification failed, check that you typed the authentication token correctly");

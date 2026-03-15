@@ -1,7 +1,7 @@
 plugins {
     java
     `java-library`
-    id ("java-library")
+    id("java-library")
 }
 
 group = "codes.antti.auth.common"
@@ -12,14 +12,16 @@ repositories {
 }
 
 dependencies {
-    compileOnly ("org.jetbrains:annotations:23.0.0")
-    implementation ("com.google.code.gson:gson:2.10.1")
+    compileOnly("org.jetbrains:annotations:23.0.0")
+    compileOnly("org.projectlombok:lombok:1.18.44")
+    annotationProcessor("org.projectlombok:lombok:1.18.44")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
-val javaTarget = 11
+val javaTarget = 21
 java {
-	sourceCompatibility = JavaVersion.toVersion(javaTarget)
-	targetCompatibility = JavaVersion.toVersion(javaTarget)
+    sourceCompatibility = JavaVersion.toVersion(javaTarget)
+    targetCompatibility = JavaVersion.toVersion(javaTarget)
 }
 
 tasks.withType(JavaCompile::class).configureEach {
@@ -32,5 +34,3 @@ tasks.withType(AbstractArchiveTask::class).configureEach {
     isReproducibleFileOrder = true
     isPreserveFileTimestamps = false
 }
-
-tasks.register("publish") { }

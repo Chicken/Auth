@@ -8,13 +8,17 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.Executors;
 
 public final class WebServer {
     private final HttpServer internal;
+
     public WebServer(@NotNull String ip, int port) throws IOException {
         this.internal = HttpServer.create(new InetSocketAddress(ip, port), 0);
+        this.internal.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         this.internal.createContext("/", httpExchange -> {
             httpExchange.sendResponseHeaders(404, -1);
+            httpExchange.close();
         });
     }
 
@@ -33,22 +37,32 @@ public final class WebServer {
 
     private void genericContextCreator(@NotNull List<String> methods, @NotNull String path, @NotNull Handler handler) {
         this.internal.createContext(path.endsWith("*") ? path.substring(0, path.length() - 1) : path, httpExchange -> {
-            String method = httpExchange.getRequestMethod();
-            if (!methods.contains(method)) {
-                httpExchange.sendResponseHeaders(400, -1);
+            Request request = new Request(httpExchange);
+            if (!methods.contains(request.getMethod())) {
+                request.respond(400);
                 return;
             }
-            String requestPath = httpExchange.getRequestURI().getPath();
+            String requestPath = request.getPath();
             if (!path.endsWith("*") && !path.equals(requestPath)) {
-                httpExchange.sendResponseHeaders(404, -1);
+                request.respond(404);
                 return;
             }
             try {
-                handler.apply(new Request(httpExchange));
-            } catch (IOException ex) {
-                throw ex;
+                handler.apply(request);
+            } catch (HTTPError err) {
+                if (!request.isResponded()) {
+                    try {
+                        request.setBody(err.getMessage());
+                        request.respond(err.getStatusCode());
+                    } catch (Exception ignored) {}
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
+                if (!request.isResponded()) {
+                    try {
+                        request.respond(500);
+                    } catch (Exception ignored) {}
+                }
             }
         });
     }
@@ -58,23 +72,24 @@ public final class WebServer {
         if (!path.startsWith("/")) throw new RuntimeException("Path should start with a slash");
         if (!path.endsWith("/")) throw new RuntimeException("Path should end with a slash");
         this.internal.createContext(path, httpExchange -> {
-            String method = httpExchange.getRequestMethod();
+            Request request = new Request(httpExchange);
+            String method = request.getMethod();
             if (!method.equals("GET") && !method.equals("HEAD")) {
-                httpExchange.sendResponseHeaders(400, -1);
+                request.respond(400);
                 return;
             }
-            String wholePath = httpExchange.getRequestURI().getPath();
+            String wholePath = request.getPath();
             if (wholePath.endsWith("/")) wholePath += "index.html";
             String fsPath = wholePath.substring(path.length());
             File file;
             try {
                 file = root.resolve(fsPath).toFile().getCanonicalFile();
             } catch (IOException ex) {
-                httpExchange.sendResponseHeaders(400, -1);
+                request.respond(500);
                 return;
             }
             if (!file.getPath().startsWith(rootString)) {
-                httpExchange.sendResponseHeaders(400, -1);
+                request.respond(400);
                 return;
             }
             try (FileInputStream in = new FileInputStream(file)) {
@@ -83,22 +98,18 @@ public final class WebServer {
                     mimeType = Optional.ofNullable(Files.probeContentType(file.toPath())).orElse("text/plain");
                 } catch (Exception ignored) {
                     mimeType = "text/plain";
-                };
-                httpExchange.getResponseHeaders().set("Content-Type", mimeType);
-                if (method.equals("GET")) {
-                    httpExchange.sendResponseHeaders(200, file.length());
-                    OutputStream out = httpExchange.getResponseBody();
-                    byte[] buf = new byte[4096];
-                    int n;
-                    while ((n = in.read(buf)) >= 0) {
-                        out.write(buf, 0, n);
-                    }
-                    out.close();
-                } else {
-                    httpExchange.sendResponseHeaders(200, -1);
                 }
+                httpExchange.getResponseHeaders().set("Content-Type", mimeType);
+                httpExchange.sendResponseHeaders(200, file.length());
+                if (method.equals("GET")) {
+                    OutputStream out = httpExchange.getResponseBody();
+                    in.transferTo(out);
+                    out.flush();
+                    out.close();
+                }
+                httpExchange.close();
             } catch (FileNotFoundException e) {
-                httpExchange.sendResponseHeaders(404, -1);
+                request.respond(404);
             }
         });
     }
@@ -112,6 +123,6 @@ public final class WebServer {
     }
 
     public void close() {
-        this.internal.stop(3);
+        this.internal.stop(1);
     }
 }

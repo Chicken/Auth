@@ -7,6 +7,7 @@ import java.io.IOException;
 
 public final class AuthorizationPlugin extends JavaPlugin {
     AuthorizationWebServer server;
+
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
@@ -14,7 +15,8 @@ public final class AuthorizationPlugin extends JavaPlugin {
         if (!webRoot.exists()) {
             boolean _ignored = webRoot.mkdirs();
         }
-        if (!webRoot.toPath().resolve("unauthorized.html").toFile().exists()) this.saveResource("web/unauthorized.html", true);
+        if (!webRoot.toPath().resolve("unauthorized.html").toFile().exists())
+            this.saveResource("web/unauthorized.html", true);
 
         try {
             this.server = new AuthorizationWebServer(this);

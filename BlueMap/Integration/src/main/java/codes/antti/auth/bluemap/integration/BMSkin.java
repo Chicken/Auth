@@ -45,9 +45,9 @@ public class BMSkin {
      * or a Steve head if the head couldn't be found
      */
     public static String getPlayerHeadIconAddress(
-            final @NotNull BlueMapAPI blueMapAPI,
-            final @NotNull UUID playerUUID,
-            final @NotNull BlueMapMap blueMapMap
+        final @NotNull BlueMapAPI blueMapAPI,
+        final @NotNull UUID playerUUID,
+        final @NotNull BlueMapMap blueMapMap
     ) {
         final String assetName = "playerheads/" + playerUUID + ".png";
 
@@ -66,10 +66,10 @@ public class BMSkin {
      * For when BlueMap doesn't have an icon for this player yet, so we need to make it create one.
      */
     private static void createPlayerHead(
-            final @NotNull BlueMapAPI blueMapAPI,
-            final @NotNull UUID playerUUID,
-            final @NotNull String assetName,
-            final @NotNull BlueMapMap map
+        final @NotNull BlueMapAPI blueMapAPI,
+        final @NotNull UUID playerUUID,
+        final @NotNull String assetName,
+        final @NotNull BlueMapMap map
     ) throws IOException {
         final SkinProvider skinProvider = blueMapAPI.getPlugin().getSkinProvider();
         try {
@@ -80,7 +80,7 @@ public class BMSkin {
 
             try (OutputStream out = map.getAssetStorage().writeAsset(assetName)) {
                 final BufferedImage head = blueMapAPI.getPlugin().getPlayerMarkerIconFactory()
-                        .apply(playerUUID, oImgSkin.get());
+                    .apply(playerUUID, oImgSkin.get());
                 ImageIO.write(head, "png", out);
             } catch (IOException e) {
                 throw new IOException("Failed to write " + playerUUID + "'s head to asset-storage", e);

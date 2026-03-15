@@ -1,9 +1,11 @@
 package codes.antti.auth.common.http;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.sun.net.httpserver.HttpExchange;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,13 +18,16 @@ import java.util.*;
 
 public class Request {
     private final HttpExchange httpExchange;
-    private final HashMap<String, String> cookies = new HashMap<>();
+    @Getter private final HashMap<String, String> cookies = new HashMap<>();
     private final ArrayList<String> responseCookies = new ArrayList<>();
-    @Nullable
-    private String bodyType = null;
-    @Nullable
-    private String body = null;
-    private static final Gson gson = new Gson();
+    @Nullable private String bodyType = null;
+    @Nullable private String body = null;
+    @Getter private boolean responded = false;
+
+    static final Gson gson = new GsonBuilder()
+        .registerTypeAdapterFactory(new RequiredTypeAdapterFactory())
+        .create();
+
     public Request(HttpExchange httpExchange) {
         this.httpExchange = httpExchange;
 
@@ -38,57 +43,18 @@ public class Request {
         }
     }
 
-    public void json(@NotNull JsonObject object) {
-        this.setBody(gson.toJson(object), "application/json");
-    }
-
-    public void setBody(@NotNull String body, @Nullable String bodyType) {
-        this.bodyType = bodyType;
-        this.body = body;
-    }
-
-    public String getBodyString() throws IOException {
-        return new String(this.httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-    }
-
-    public JsonElement getBodyJson() throws IOException {
-        return gson.fromJson(getBodyString(), JsonElement.class);
-    }
-
-    public void respond(int statusCode) throws IOException {
-        if (!this.responseCookies.isEmpty()) setHeader("Set-Cookie", String.join("; ", responseCookies));
-        if (this.body != null) this.setHeader("Content-Type", Optional.ofNullable(bodyType).orElse("text/plain") + "; charset=UTF-8");
-        if (this.body != null && this.getMethod().equals("GET")) {
-            byte[] response = body.getBytes(StandardCharsets.UTF_8);
-            httpExchange.sendResponseHeaders(statusCode, response.length);
-            OutputStream out = httpExchange.getResponseBody();
-            out.write(response);
-            out.close();
-        } else {
-            this.httpExchange.sendResponseHeaders(statusCode, -1);
-        }
-    }
-
-    public void redirect(@NotNull String url) throws IOException {
-        this.redirect(302, url);
-    }
-    public void redirect(int statusCode, @NotNull String url) throws IOException {
-        this.setHeader("Location", url);
-        this.respond(statusCode);
-    }
-
-    public void setHeader(@NotNull String key, @NotNull String value) {
-        this.httpExchange.getResponseHeaders().set(key ,value);
-    }
-
-    public @Nullable String getHeader(@NotNull String key) {
-        List<String> headers = this.httpExchange.getRequestHeaders().get(key);
-        if (headers != null && !headers.isEmpty()) return headers.get(0);
-        else return null;
+    public String getMethod() {
+        return this.httpExchange.getRequestMethod();
     }
 
     public String getPath() {
         return this.httpExchange.getRequestURI().getPath();
+    }
+
+    public @Nullable String getHeader(@NotNull String key) {
+        List<String> headers = this.httpExchange.getRequestHeaders().get(key);
+        if (headers != null && !headers.isEmpty()) return headers.getFirst();
+        else return null;
     }
 
     public Map<String, String> getQuery() {
@@ -102,20 +68,78 @@ public class Request {
         return result;
     }
 
+    public String getBodyString() throws IOException {
+        return new String(this.httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    public JsonElement getBodyJson() throws HTTPError {
+        return getBodyAs(JsonElement.class);
+    }
+
+    public <T> T getBodyAs(Class<T> clazz) throws HTTPError {
+        try {
+            T body = gson.fromJson(getBodyString(), clazz);
+            if (body == null) throw new HTTPError(400, "Invalid data");
+            return body;
+        } catch (Exception ex) {
+            if (ex instanceof HTTPError) throw (HTTPError) ex;
+            else throw new HTTPError(400, "Invalid data");
+        }
+    }
+
+    public void respond(int statusCode) throws IOException {
+        if (isResponded()) throw new IllegalStateException("Response already sent!");
+        responded = true;
+        if (!this.responseCookies.isEmpty()) setHeader("Set-Cookie", String.join("; ", responseCookies));
+        if (this.body != null)
+            this.setHeader("Content-Type", Optional.ofNullable(bodyType).orElse("text/plain; charset=utf-8"));
+        if (this.body != null) {
+            byte[] response = body.getBytes(StandardCharsets.UTF_8);
+            httpExchange.sendResponseHeaders(statusCode, response.length);
+            if (!this.getMethod().equals("HEAD")) {
+                OutputStream out = httpExchange.getResponseBody();
+                out.write(response);
+                out.flush();
+                out.close();
+            }
+        } else {
+            httpExchange.sendResponseHeaders(statusCode, -1);
+        }
+        httpExchange.close();
+    }
+
+    public void redirect(@NotNull String url) throws IOException {
+        this.redirect(302, url);
+    }
+
+    public void redirect(int statusCode, @NotNull String url) throws IOException {
+        this.setHeader("Location", url);
+        this.respond(statusCode);
+    }
+
+    public void json(@NotNull Object object) {
+        this.setBody(gson.toJson(object), "application/json; charset=utf-8");
+    }
+
+    public void setBody(@NotNull String body) {
+        this.setBody(body, "text/plain; charset=utf-8");
+    }
+
+    public void setBody(@NotNull String body, @Nullable String bodyType) {
+        this.bodyType = bodyType;
+        this.body = body;
+    }
+
+    public void setHeader(@NotNull String key, @NotNull String value) {
+        this.httpExchange.getResponseHeaders().set(key, value);
+    }
+
     private String formatCookie(@NotNull String name, @NotNull String value, long expires) {
         return name + "=" + value + "; " +
-                "Expires=" + new Date(expires * 1000L) + "; " +
-                "HttpOnly; Secure; " +
-                "SameSite=Strict; " +
-                "Path=/";
-    }
-
-    public HashMap<String, String> getCookies() {
-        return cookies;
-    }
-
-    public String getMethod() {
-        return this.httpExchange.getRequestMethod();
+               "Expires=" + new Date(expires * 1000L) + "; " +
+               "HttpOnly; Secure; " +
+               "SameSite=Lax; " +
+               "Path=/";
     }
 
     public void setCookie(@NotNull String key, @NotNull String value, long expires) {

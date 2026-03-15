@@ -1,8 +1,8 @@
 package codes.antti.auth.common.http;
 
-import com.google.gson.JsonElement;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,6 +11,7 @@ public class SSERequest {
     private final HttpExchange httpExchange;
     private final OutputStream out;
     private final CloseHandler closeHandler;
+    private boolean closed = false;
 
     @FunctionalInterface
     public interface CloseHandler {
@@ -30,23 +31,29 @@ public class SSERequest {
     }
 
     private void write(String data) {
+        if (closed) throw new IllegalStateException("Already closed!");
         try {
             this.out.write(data.getBytes());
             this.out.flush();
         } catch (IOException e) {
-            closeHandler.apply();
-            try {
-                httpExchange.close();
-            } catch (Exception ignored) {}
+            close();
         }
     }
 
-    public void send(String data) {
+    public void close() {
+        if (closed) return;
+        closed = true;
+        try { out.flush(); } catch (Exception ignored) {}
+        try { httpExchange.close(); } catch (Exception ignored) {}
+        closeHandler.apply();
+    }
+
+    public void send(@NotNull String data) {
         write("data: " + data + "\n\n");
     }
 
-    public void send(JsonElement object) {
-        send(object.toString());
+    public void send(@NotNull Object object) {
+        send(Request.gson.toJson(object));
     }
 
     public void ping() {

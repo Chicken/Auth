@@ -5,36 +5,83 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.sql.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class Database {
-    Connection conn;
+    private static final int POOL_SIZE = 4;
+
+    @FunctionalInterface
+    public interface ResultSetHandler<T> {
+        T handle(ResultSet rs) throws SQLException;
+    }
+
+    private final ArrayBlockingQueue<Connection> pool = new ArrayBlockingQueue<>(POOL_SIZE);
+
     public Database(@NotNull String path) throws SQLException {
         File file = new File(path);
         if (!file.getParentFile().exists() && !file.getParentFile().mkdirs()) {
             throw new RuntimeException("Couldn't create data folder");
         }
-        conn = DriverManager.getConnection("jdbc:sqlite:" + path);
-        conn.setAutoCommit(true);
+        String url = "jdbc:sqlite:" + path;
+
+        for (int i = 0; i < POOL_SIZE; i++) {
+            Connection conn = DriverManager.getConnection(url);
+            conn.setAutoCommit(true);
+            applyPragmas(conn);
+            pool.offer(conn);
+        }
     }
 
-    public ResultSet query(@NotNull @Language("sql") String sql, Object... parameters) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement(sql);
-        for (int i = 0; i < parameters.length; i++) {
-            statement.setObject(i + 1, parameters[i]);
+    private static void applyPragmas(Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("PRAGMA journal_mode=WAL");
+            stmt.execute("PRAGMA synchronous=FULL");
+            stmt.execute("PRAGMA busy_timeout=5000");
+            stmt.execute("PRAGMA cache_size=-4096");
+            stmt.execute("PRAGMA temp_store=MEMORY");
+            stmt.execute("PRAGMA mmap_size=4194304");
         }
-        return statement.executeQuery();
+    }
+
+    private Connection acquire() throws SQLException {
+        try {
+            return pool.take();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new SQLException("Interrupted while waiting for a connection", e);
+        }
+    }
+
+    public <T> T query(@NotNull @Language("sql") String sql, @NotNull ResultSetHandler<T> handler, Object... parameters) throws SQLException {
+        Connection conn = acquire();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            for (int i = 0; i < parameters.length; i++) {
+                statement.setObject(i + 1, parameters[i]);
+            }
+            try (ResultSet rs = statement.executeQuery()) {
+                return handler.handle(rs);
+            }
+        } finally {
+            pool.offer(conn);
+        }
     }
 
     public void update(@NotNull @Language("sql") String sql, Object... parameters) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement(sql);
-        for (int i = 0; i < parameters.length; i++) {
-            statement.setObject(i + 1, parameters[i]);
+        Connection conn = acquire();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            for (int i = 0; i < parameters.length; i++) {
+                statement.setObject(i + 1, parameters[i]);
+            }
+            statement.executeUpdate();
+        } finally {
+            pool.offer(conn);
         }
-        statement.executeUpdate();
     }
 
     public void close() {
-        try { this.conn.commit(); } catch (SQLException ignored) {}
-        try { this.conn.close(); } catch (SQLException ignored) {}
+        Connection conn;
+        while ((conn = pool.poll()) != null) {
+            try { conn.close(); } catch (SQLException ignored) {}
+        }
     }
 }

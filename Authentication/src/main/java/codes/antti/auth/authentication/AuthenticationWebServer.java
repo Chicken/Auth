@@ -30,15 +30,13 @@ public class AuthenticationWebServer {
         final boolean optionalAuth = config.getBoolean("optional_authentication", false);
 
 
-
         this.http.get("/auth", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
             if (sessionId == null) {
                 if (optionalAuth) {
                     request.setHeader(X_LOGGEDIN_HEADER, "false");
                     request.respond(200);
-                }
-                else request.respond(401);
+                } else request.respond(401);
                 return;
             }
             Session session = plugin.db.getSession(sessionId);
@@ -46,8 +44,7 @@ public class AuthenticationWebServer {
                 if (optionalAuth) {
                     request.setHeader(X_LOGGEDIN_HEADER, "false");
                     request.respond(200);
-                }
-                else request.respond(401);
+                } else request.respond(401);
                 return;
             }
             if (!request.getProxyIp().equals(session.ip) && plugin.ipLock) {
@@ -55,8 +52,7 @@ public class AuthenticationWebServer {
                 if (optionalAuth) {
                     request.setHeader(X_LOGGEDIN_HEADER, "false");
                     request.respond(200);
-                }
-                else request.respond(401);
+                } else request.respond(401);
                 return;
             }
             request.setHeader(X_LOGGEDIN_HEADER, "true");
@@ -64,7 +60,6 @@ public class AuthenticationWebServer {
             request.setHeader(X_USERNAME_HEADER, session.username);
             request.respond(200);
         });
-
 
 
         this.http.get("/login", request -> {
@@ -99,7 +94,6 @@ public class AuthenticationWebServer {
         this.http.serveStatic("/login/", this.plugin.getDataFolder().toPath().resolve("web"));
 
 
-
         this.http.get("/logout", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
             String redirectUri = Optional.ofNullable(request.getQuery().get("redirect")).orElse("/");
@@ -119,7 +113,6 @@ public class AuthenticationWebServer {
         });
 
 
-
         this.http.get("/logout/all", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
             String redirectUri = Optional.ofNullable(request.getQuery().get("redirect")).orElse("/");
@@ -137,7 +130,6 @@ public class AuthenticationWebServer {
             request.clearCookie(SESSION_ID_COOKIE);
             request.redirect(redirectUri);
         });
-
 
 
         this.http.start();
