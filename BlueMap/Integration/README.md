@@ -68,7 +68,7 @@ server {
 
   # Your domain name
   server_name map.example.com; # REPLACE ME
-  
+
   # Your ssl certificates
   ssl_certificate /etc/nginx/certs/cert.pem; # REPLACE ME
   ssl_certificate_key /etc/nginx/certs/key.pem; # REPLACE ME
@@ -126,12 +126,12 @@ server {
     proxy_buffering off;
   }
 
-　# Addon integration requests to it
+  # Addon integration requests to it
   location /addons/integration/ {
      proxy_pass http://127.0.0.1:8400/;
      proxy_buffering off;
   }
-  
+
   # Other addons go here
 }
 

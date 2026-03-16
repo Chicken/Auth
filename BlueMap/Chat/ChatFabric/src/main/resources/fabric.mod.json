@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "bluemap-chat",
+  "version": "0.3.0",
+  "name": "BlueMap Chat",
+  "description": "Web chat integration for BlueMap",
+  "authors": ["Antti"],
+  "entrypoints": {
+    "main": ["codes.antti.auth.bluemap.chat.fabric.FabricMod"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21",
+    "bluemap": "*"
+  }
+}

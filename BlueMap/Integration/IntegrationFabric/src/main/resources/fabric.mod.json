@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "bluemap-auth",
+  "version": "0.2.1",
+  "name": "BlueMap Auth Integration",
+  "description": "Authentication base integration for BlueMap",
+  "authors": ["Antti"],
+  "entrypoints": {
+    "main": ["codes.antti.auth.bluemap.integration.fabric.FabricMod"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21",
+    "bluemap": "*"
+  }
+}

@@ -17,8 +17,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -53,8 +55,8 @@ public final class BlueMapPrivateMapsPlugin extends JavaPlugin {
 
         URL settingsUrl;
         try {
-            settingsUrl = new URL(Objects.requireNonNull(config.getString("bluemap-url")) + "/settings.json");
-        } catch (MalformedURLException ex) {
+            settingsUrl = new URI(Objects.requireNonNull(config.getString("bluemap-url")) + "/settings.json").toURL();
+        } catch (URISyntaxException | MalformedURLException ex) {
             getLogger().severe("Failed to parse bluemap-url");
             ex.printStackTrace();
             return;

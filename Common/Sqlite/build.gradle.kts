@@ -1,34 +1,12 @@
 plugins {
-    java
     `java-library`
-    id("java-library")
+    auth.java
 }
 
 group = "codes.antti.auth.common"
 version = "0.0.0"
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    compileOnly("org.jetbrains:annotations:23.0.0")
-    implementation("org.xerial:sqlite-jdbc:3.41.2.1")
-}
-
-val javaTarget = 21
-java {
-    sourceCompatibility = JavaVersion.toVersion(javaTarget)
-    targetCompatibility = JavaVersion.toVersion(javaTarget)
-}
-
-tasks.withType(JavaCompile::class).configureEach {
-    options.apply {
-        encoding = "utf-8"
-    }
-}
-
-tasks.withType(AbstractArchiveTask::class).configureEach {
-    isReproducibleFileOrder = true
-    isPreserveFileTimestamps = false
+    compileOnly(libs.jetbrains.annotations)
+    compileOnly(libs.sqlite.jdbc)
 }
