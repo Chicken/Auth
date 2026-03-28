@@ -2,16 +2,19 @@ package codes.antti.auth.bluemap.integration.fabric;
 
 import codes.antti.auth.bluemap.integration.IntegrationCore;
 import codes.antti.auth.bluemap.integration.IntegrationPlatformAdapter;
+import codes.antti.auth.common.fabric.FabricConfig;
+import codes.antti.auth.common.fabric.LogWrapper;
 import de.bluecolored.bluemap.api.BlueMapAPI;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
 public class FabricMod implements ModInitializer, IntegrationPlatformAdapter {
-    private static final Logger LOGGER = Logger.getLogger("BlueMapAuth");
+    private static final Logger LOGGER = new LogWrapper(LoggerFactory.getLogger("BlueMap-Auth"), "[BlueMap-Auth]");
     private final IntegrationCore core = new IntegrationCore();
     private FabricConfig config;
 
@@ -21,14 +24,14 @@ public class FabricMod implements ModInitializer, IntegrationPlatformAdapter {
         try {
             this.config = new FabricConfig(configFile, "assets/bluemap-auth/config.yml");
         } catch (IOException e) {
-            LOGGER.severe("Failed to load config: " + e.getMessage());
+            getLogger().severe("Failed to load config: " + e.getMessage());
             return;
         }
 
         BlueMapAPI.onEnable(api -> core.onBlueMapEnabled(this, api));
         BlueMapAPI.onDisable(api -> core.onBlueMapDisabled());
 
-        LOGGER.info("BlueMap Auth Integration enabled");
+        getLogger().info("BlueMap Auth Integration enabled");
     }
 
     // IntegrationPlatformAdapter

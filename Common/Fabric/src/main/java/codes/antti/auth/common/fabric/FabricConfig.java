@@ -1,4 +1,4 @@
-package codes.antti.auth.bluemap.integration.fabric;
+package codes.antti.auth.common.fabric;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -37,6 +37,13 @@ public class FabricConfig {
         if (val instanceof String) {
             try { return Integer.parseInt((String) val); } catch (NumberFormatException ignored) {}
         }
+        return def;
+    }
+
+    public boolean getBoolean(String key, boolean def) {
+        Object val = data.get(key);
+        if (val instanceof Boolean) return (Boolean) val;
+        if (val instanceof String) return Boolean.parseBoolean((String) val);
         return def;
     }
 }

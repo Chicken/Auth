@@ -2,6 +2,8 @@ package codes.antti.auth.bluemap.chat.fabric;
 
 import codes.antti.auth.bluemap.chat.ChatCore;
 import codes.antti.auth.bluemap.chat.ChatPlatformAdapter;
+import codes.antti.auth.common.fabric.FabricConfig;
+import codes.antti.auth.common.fabric.LogWrapper;
 import de.bluecolored.bluemap.api.BlueMapAPI;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
@@ -13,13 +15,14 @@ import net.minecraft.network.message.MessageType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
 public class FabricMod implements ModInitializer, ChatPlatformAdapter {
-    private static final Logger LOGGER = Logger.getLogger("BlueMapChat");
+    private static final Logger LOGGER = new LogWrapper(LoggerFactory.getLogger("BlueMap-Chat"), "[BlueMap-Chat]");
     private final ChatCore core = new ChatCore();
     private FabricConfig config;
     private MinecraftServer server;
@@ -30,7 +33,7 @@ public class FabricMod implements ModInitializer, ChatPlatformAdapter {
         try {
             this.config = new FabricConfig(configFile, "assets/bluemap-chat/config.yml");
         } catch (IOException e) {
-            LOGGER.severe("Failed to load config: " + e.getMessage());
+            getLogger().severe("Failed to load config: " + e.getMessage());
             return;
         }
 
@@ -76,7 +79,7 @@ public class FabricMod implements ModInitializer, ChatPlatformAdapter {
             core.onQuit(handler.player.getUuid(), handler.player.getName().getString())
         );
 
-        LOGGER.info("BlueMap Chat enabled");
+        getLogger().info("BlueMap Chat enabled");
     }
 
     // ChatPlatformAdapter

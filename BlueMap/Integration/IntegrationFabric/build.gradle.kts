@@ -12,6 +12,7 @@ version = project(":BlueMap:Integration:IntegrationCore").version
 dependencies {
     "modCompileOnly"(libs.bluemap.api)
     shadowImpl(project(":BlueMap:Integration:IntegrationCore"))
+    shadowImpl(project(":Common:Fabric"))
 }
 
 tasks.named<ShadowJar>("shadowJar") {

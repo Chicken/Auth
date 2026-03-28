@@ -1,8 +1,22 @@
 ip: "127.0.0.1"
 port: 8200
+webserver_enabled: true
 
 ip_lock: true
 optional_authentication: false
 session_length_days: 31
 auth_token_length: 7
 user_max_sessions: 3
+
+# Supports Sqlite and MySQL/MariaDB.
+# {data} is replaced with the plugin data directory.
+# Sqlite and MySQL work on paper by default.
+# For some you can download plugins/mods to include them globally.
+# Or you can provide the jar and class manually.
+# Examples (depends on the driver):
+#   jdbc:sqlite:{data}/db.sqlite
+#   jdbc:mysql://example_user:example_pass@localhost:3306/bluemap_auth
+#   jdbc:mariadb://localhost:3306/bluemap_auth?user=example_user&password=example_pass
+database_url: "jdbc:sqlite:{data}/db.sqlite"
+# driver_jar: "{data}/mariadb-java-client-3.5.3.jar"
+# driver_class: "org.mariadb.jdbc.Driver"

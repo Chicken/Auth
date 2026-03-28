@@ -12,6 +12,8 @@ yarn-mappings = "1.21.11+build.4"
 fabric-loader = "0.18.4"
 fabric-api = "0.141.3+1.21.11"
 shadow = "9.3.2"
+hikaricp = "6.3.0"
+slf4j = "2.0.17"
 fabric-loom = "1.15-SNAPSHOT"
 
 [libraries]
@@ -23,6 +25,8 @@ snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 spigot-api = { module = "org.spigotmc:spigot-api", version.ref = "spigot-api" }
 luckperms = { module = "net.luckperms:api", version.ref = "luckperms" }
 bluemap-api = { module = "de.bluecolored:bluemap-api", version.ref = "bluemap-api" }
+hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
 yarn-mappings = { module = "net.fabricmc:yarn", version.ref = "yarn-mappings" }
 fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-loader" }

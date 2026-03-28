@@ -12,6 +12,7 @@ version = project(":BlueMap:Chat:ChatCore").version
 dependencies {
     "modCompileOnly"(libs.bluemap.api)
     shadowImpl(project(":BlueMap:Chat:ChatCore"))
+    shadowImpl(project(":Common:Fabric"))
 }
 
 tasks.named<ShadowJar>("shadowJar") {

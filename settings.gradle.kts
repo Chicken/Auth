@@ -9,7 +9,8 @@ pluginManagement {
 }
 
 include(":Common:Http")
-include(":Common:Sqlite")
+include(":Common:Database")
+include(":Common:Fabric")
 
 include(":Authentication:AuthCore")
 proj("Authentication-Spigot", "Authentication/AuthSpigot")

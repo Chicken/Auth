@@ -15,6 +15,11 @@ bin/
 *.ipr
 *.iws
 
+*.prefs
+.classpath
+.project
+.settings
+
 *.log
 *.zip
 *.tar.gz

@@ -59,10 +59,14 @@ public final class AuthenticationPlugin extends JavaPlugin implements CommandExe
     @Override public Path getDataPath() { return getDataFolder().toPath(); }
     @Override public String getIp() { return getConfig().getString("ip", "0.0.0.0"); }
     @Override public int getPort() { return getConfig().getInt("port", 8200); }
+    @Override public boolean isWebServerEnabled() { return getConfig().getBoolean("webserver_enabled", true); }
     @Override public boolean isIpLock() { return getConfig().getBoolean("ip_lock", true); }
     @Override public boolean isOptionalAuthentication() { return getConfig().getBoolean("optional_authentication", false); }
     @Override public int getSessionLengthDays() { return getConfig().getInt("session_length_days", 31); }
     @Override public int getAuthTokenLength() { return getConfig().getInt("auth_token_length", 7); }
     @Override public int getUserMaxSessions() { return getConfig().getInt("user_max_sessions", 3); }
+    @Override public String getDatabaseUrl() { return getConfig().getString("database_url", "jdbc:sqlite:{data}/db.sqlite"); }
+    @Override public String getDriverJar() { return getConfig().getString("driver_jar", null); }
+    @Override public String getDriverClass() { return getConfig().getString("driver_class", null); }
     @Override public Logger getLogger() { return super.getLogger(); }
 }

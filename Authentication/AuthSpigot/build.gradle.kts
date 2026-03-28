@@ -19,4 +19,5 @@ tasks.shadowJar {
 
     relocate("codes.antti.auth.common", "codes.antti.auth.authentication.shadow.common")
     relocate("com.google.gson", "codes.antti.auth.authentication.shadow.gson")
+    relocate("com.zaxxer.hikari", "codes.antti.auth.authentication.shadow.hikari")
 }

@@ -9,4 +9,5 @@ version = "0.0.0"
 dependencies {
     compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.sqlite.jdbc)
+    implementation(libs.hikaricp)
 }

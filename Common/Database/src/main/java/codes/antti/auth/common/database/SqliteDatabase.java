@@ -1,23 +1,23 @@
-package codes.antti.auth.common.sqlite;
+package codes.antti.auth.common.database;
 
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.sql.*;
+import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 
-public class Database {
+public class SqliteDatabase implements Database {
     private static final int POOL_SIZE = 4;
-
-    @FunctionalInterface
-    public interface ResultSetHandler<T> {
-        T handle(ResultSet rs) throws SQLException;
-    }
 
     private final ArrayBlockingQueue<Connection> pool = new ArrayBlockingQueue<>(POOL_SIZE);
 
-    public Database(@NotNull String path) throws SQLException {
+    public SqliteDatabase(@NotNull String path) throws SQLException {
+        this(path, DriverManager.getDriver("jdbc:sqlite:" + path));
+    }
+
+    public SqliteDatabase(@NotNull String path, @NotNull Driver driver) throws SQLException {
         File file = new File(path);
         if (!file.getParentFile().exists() && !file.getParentFile().mkdirs()) {
             throw new RuntimeException("Couldn't create data folder");
@@ -25,7 +25,7 @@ public class Database {
         String url = "jdbc:sqlite:" + path;
 
         for (int i = 0; i < POOL_SIZE; i++) {
-            Connection conn = DriverManager.getConnection(url);
+            Connection conn = driver.connect(url, new Properties());
             conn.setAutoCommit(true);
             applyPragmas(conn);
             pool.offer(conn);
