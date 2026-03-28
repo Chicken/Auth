@@ -9,16 +9,15 @@ import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AuthenticationDatabase {
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
     private final Database db;
-    private final HashMap<String, Session> sessionCache = new HashMap<>();
-    private final HashMap<String, Long> sessionCacheExpiry = new HashMap<>();
+    private final ConcurrentHashMap<String, Session> sessionCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Long> sessionCacheExpiry = new ConcurrentHashMap<>();
     private static final long CACHE_SECONDS = 5;
     private final int authTokenLength;
     public final long sessionLength;
@@ -128,7 +127,7 @@ public class AuthenticationDatabase {
     }
 
     private static String generateNewAuthToken(int length) {
-        return new Random().ints(48, 90 + 1)
+        return secureRandom.ints(48, 90 + 1)
             .filter(i -> i <= 57 || i >= 65)
             .limit(length)
             .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)

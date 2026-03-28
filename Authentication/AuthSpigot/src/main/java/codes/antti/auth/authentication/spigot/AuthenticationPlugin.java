@@ -57,7 +57,7 @@ public final class AuthenticationPlugin extends JavaPlugin implements CommandExe
 
     // AuthPlatformAdapter
     @Override public Path getDataPath() { return getDataFolder().toPath(); }
-    @Override public String getIp() { return getConfig().getString("ip", "0.0.0.0"); }
+    @Override public String getIp() { return getConfig().getString("ip", "127.0.0.1"); }
     @Override public int getPort() { return getConfig().getInt("port", 8200); }
     @Override public boolean isWebServerEnabled() { return getConfig().getBoolean("webserver_enabled", true); }
     @Override public boolean isIpLock() { return getConfig().getBoolean("ip_lock", true); }

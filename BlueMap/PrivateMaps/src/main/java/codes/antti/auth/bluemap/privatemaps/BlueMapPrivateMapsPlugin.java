@@ -21,7 +21,6 @@ import java.net.URISyntaxException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -35,8 +34,8 @@ public final class BlueMapPrivateMapsPlugin extends JavaPlugin {
     private LuckPerms lp;
     private final ConcurrentHashMap<String, CompletableFuture<PermissionHolder>> userCache = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Long> userCacheExpiry = new ConcurrentHashMap<>();
-    private final HashMap<String, Boolean> permCache = new HashMap<>();
-    private final HashMap<String, Long> permCacheExpiry = new HashMap<>();
+    private final ConcurrentHashMap<String, Boolean> permCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Long> permCacheExpiry = new ConcurrentHashMap<>();
     private static final long CACHE_SECONDS = 60;
 
     @Override
@@ -46,7 +45,7 @@ public final class BlueMapPrivateMapsPlugin extends JavaPlugin {
         this.lp = LuckPermsProvider.get();
 
         try {
-            this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8600));
+            this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "127.0.0.1")), config.getInt("port", 8600));
         } catch (IOException ex) {
             getLogger().severe("Failed to create HTTP server");
             ex.printStackTrace();

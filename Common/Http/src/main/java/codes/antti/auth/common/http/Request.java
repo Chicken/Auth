@@ -3,7 +3,6 @@ package codes.antti.auth.common.http;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.sun.net.httpserver.HttpExchange;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +13,10 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Request {
@@ -135,8 +138,11 @@ public class Request {
     }
 
     private String formatCookie(@NotNull String name, @NotNull String value, long expires) {
+        String expiresStr = DateTimeFormatter.RFC_1123_DATE_TIME.format(
+            ZonedDateTime.ofInstant(Instant.ofEpochSecond(expires), ZoneOffset.UTC)
+        );
         return name + "=" + value + "; " +
-               "Expires=" + new Date(expires * 1000L) + "; " +
+               "Expires=" + expiresStr + "; " +
                "HttpOnly; Secure; " +
                "SameSite=Lax; " +
                "Path=/";

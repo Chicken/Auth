@@ -78,7 +78,7 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener, Cha
     }
 
     // ChatPlatformAdapter
-    @Override public String getIp() { return getConfig().getString("ip", "0.0.0.0"); }
+    @Override public String getIp() { return getConfig().getString("ip", "127.0.0.1"); }
     @Override public int getPort() { return getConfig().getInt("port", 8800); }
     @Override public boolean isReadAuth() { return getConfig().getBoolean("read-auth", false); }
     @Override public boolean isReadOnly() { return getConfig().getBoolean("read-only", false); }

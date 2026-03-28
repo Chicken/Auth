@@ -1,25 +1,19 @@
 void async function() {
     console.log("[Auth/info] Authentication integration loaded!");
 
-    const logOutTemplate = document.createElement("template");
-    logOutTemplate.innerHTML = `
-    <a style="text-decoration: none" href="{{auth-path}}logout?redirect=${encodeURIComponent(window.location.pathname)}">
-        <div class="simple-button">
-            <div class="label">Logout</div>
-        </div>
-    </a>
-    `.trim();
-    const logOutButton = logOutTemplate.content.firstChild;
-
-    const logOutAllTemplate = document.createElement("template");
-    logOutAllTemplate.innerHTML = `
-    <a style="text-decoration: none" href="{{auth-path}}logout/all?redirect=${encodeURIComponent(window.location.pathname)}">
-        <div class="simple-button">
-            <div class="label">Logout All Browsers</div>
-        </div>
-    </a>
-    `.trim();
-    const logOutAllButton = logOutAllTemplate.content.firstChild;
+    function makePostButton(label, endpoint) {
+        const el = document.createElement("div");
+        el.className = "simple-button";
+        el.style.cursor = "pointer";
+        el.innerHTML = `<div class="label">${label}</div>`;
+        el.addEventListener("click", () => {
+            fetch(`{{auth-path}}${endpoint}?redirect=${encodeURIComponent(window.location.pathname)}`, { method: "POST" })
+                .then(() => { window.location.href = window.location.pathname; });
+        });
+        return el;
+    }
+    const logOutButton = makePostButton("Logout", "logout");
+    const logOutAllButton = makePostButton("Logout All Browsers", "logout/all");
 
     const logInTemplate = document.createElement("template");
     logInTemplate.innerHTML = `

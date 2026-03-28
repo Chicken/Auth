@@ -25,7 +25,7 @@ public final class BlueMapAuthIntegrationPlugin extends JavaPlugin implements In
     }
 
     // IntegrationPlatformAdapter
-    @Override public String getIp() { return getConfig().getString("ip", "0.0.0.0"); }
+    @Override public String getIp() { return getConfig().getString("ip", "127.0.0.1"); }
     @Override public int getPort() { return getConfig().getInt("port", 8400); }
     @Override public String getAuthPath() { return getConfig().getString("auth-path", "./authentication-outpost/"); }
 }

@@ -16,11 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.StringWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,7 +41,7 @@ public final class BlueMapPrivateLocationPlugin extends JavaPlugin {
             this.userManager = lp.getUserManager();
 
             try {
-                this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8500));
+                this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "127.0.0.1")), config.getInt("port", 8500));
             } catch (IOException ex) {
                 getLogger().severe("Failed to create HTTP server");
                 ex.printStackTrace();

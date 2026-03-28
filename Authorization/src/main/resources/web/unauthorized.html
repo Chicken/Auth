@@ -57,6 +57,10 @@
             border-radius: 5px;
             position: relative;
         }
+        .button-container {
+            display: flex;
+            justify-content: center;
+        }
         button {
             all: unset;
             background-color: #f87171;
@@ -69,8 +73,9 @@
             padding: 2px 8px;
             margin: 16px 2px 2px;
         }
-        a {
-            text-decoration: none;
+        form {
+            display: inline;
+            margin: 0;
         }
     </style>
 </head>
@@ -84,12 +89,15 @@
     <p>
         You are not authorized to use the application at <span class="code">{{host}}</span>.<br>
         This requires the <span class="code">{{permission}}</span> permission node. <br>
-        <a class="auth" href="../authentication-outpost/logout"><button>Logout</button></a> <a class="auth" href="../authentication-outpost/logout/all"><button>Logout all browsers</button></a>
     </p>
+    <div class="button-container">
+        <form class="auth" action="../authentication-outpost/logout" method="POST"><button type="submit">Logout</button></form>
+        <form class="auth" action="../authentication-outpost/logout/all" method="POST"><button type="submit">Logout all browsers</button></form>
+    </div>
 </div>
 <script>
     const redirectUri = new URLSearchParams(window.location.search).get("redirect") || "/";
-    document.querySelectorAll("a.auth").forEach(el => el.href += `?redirect=${encodeURIComponent(redirectUri)}`);
+    document.querySelectorAll("form.auth").forEach(el => el.action += `?redirect=${encodeURIComponent(redirectUri)}`);
     setInterval(() => {
         fetch("./auth")
             .then(res => {

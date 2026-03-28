@@ -7,6 +7,7 @@ import net.luckperms.api.model.user.User;
 import net.luckperms.api.model.user.UserManager;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,7 +27,7 @@ public class AuthorizationWebServer {
 
     public AuthorizationWebServer(AuthorizationPlugin plugin) throws IOException {
         FileConfiguration config = plugin.getConfig();
-        this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "0.0.0.0")), config.getInt("port", 8300));
+        this.http = new WebServer(Objects.requireNonNull(config.getString("ip", "127.0.0.1")), config.getInt("port", 8300));
         LuckPerms lp = LuckPermsProvider.get();
         this.userManager = lp.getUserManager();
         this.unauthorizedPagePath = plugin.getDataFolder().toPath().resolve("web/unauthorized.html");
@@ -57,8 +58,7 @@ public class AuthorizationWebServer {
             String permissionNode = config.getString("sites." + host);
             if (playerUuid != null && permissionNode != null) {
                 if (getPerm(playerUuid, permissionNode).get()) {
-                    String redirectUri = Optional.ofNullable(request.getQuery().get("redirect")).orElse("/");
-                    request.redirect(redirectUri);
+                    request.redirect(safeRedirectUri(request.getQuery().get("redirect")));
                     return;
                 }
             }
@@ -90,14 +90,20 @@ public class AuthorizationWebServer {
         plugin.getLogger().info("Webserver bound to " + this.http.getAddress());
     }
 
+    private static String safeRedirectUri(@Nullable String uri) {
+        if (uri == null || !uri.startsWith("/") || uri.startsWith("//")) return "/";
+        return uri;
+    }
+
     private CompletableFuture<Boolean> getPerm(@NotNull String uuid, @NotNull String permissionNode) {
-        Boolean cached = permissionCache.get(uuid);
-        Long expiry = permissionCacheExpiry.get(uuid);
+        String cacheKey = uuid + ":" + permissionNode;
+        Boolean cached = permissionCache.get(cacheKey);
+        Long expiry = permissionCacheExpiry.get(cacheKey);
         if (cached != null && expiry != null && expiry >= System.currentTimeMillis()) {
             return CompletableFuture.completedFuture(cached);
         }
         CompletableFuture<Boolean> myFuture = new CompletableFuture<>();
-        CompletableFuture<Boolean> existing = inFlight.putIfAbsent(uuid, myFuture);
+        CompletableFuture<Boolean> existing = inFlight.putIfAbsent(cacheKey, myFuture);
         if (existing != null) {
             return existing;
         }
@@ -105,12 +111,12 @@ public class AuthorizationWebServer {
         User cachedUser = this.userManager.getUser(parsedUuid);
         (cachedUser != null ? CompletableFuture.completedFuture(cachedUser) : this.userManager.loadUser(parsedUuid)).thenAcceptAsync(user -> {
             boolean value = user.getCachedData().getPermissionData().checkPermission(permissionNode).asBoolean();
-            permissionCache.put(uuid, value);
-            permissionCacheExpiry.put(uuid, System.currentTimeMillis() + CACHE_SECONDS * 1000);
-            inFlight.remove(uuid);
+            permissionCache.put(cacheKey, value);
+            permissionCacheExpiry.put(cacheKey, System.currentTimeMillis() + CACHE_SECONDS * 1000);
+            inFlight.remove(cacheKey);
             myFuture.complete(value);
         }).exceptionally(ex -> {
-            inFlight.remove(uuid);
+            inFlight.remove(cacheKey);
             myFuture.completeExceptionally(ex);
             return null;
         });

@@ -3,6 +3,7 @@ package codes.antti.auth.authentication;
 import codes.antti.auth.common.http.WebServer;
 import codes.antti.auth.authentication.AuthenticationDatabase.Session;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -76,8 +77,7 @@ public class AuthenticationWebServer {
             session = this.db.getSession(sessionId);
             if (session != null) {
                 if (session.playerUuid != null) {
-                    String redirectUri = Optional.ofNullable(request.getQuery().get("redirect")).orElse("/");
-                    request.redirect(redirectUri);
+                    request.redirect(safeRedirectUri(request.getQuery().get("redirect")));
                     return;
                 }
                 request.setBody(formatLoginPage(session.authToken), "text/html");
@@ -94,9 +94,9 @@ public class AuthenticationWebServer {
         this.http.serveStatic("/login/", adapter.getDataPath().resolve("web"));
 
 
-        this.http.get("/logout", request -> {
+        this.http.post("/logout", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
-            String redirectUri = Optional.ofNullable(request.getQuery().get("redirect")).orElse("/");
+            String redirectUri = safeRedirectUri(request.getQuery().get("redirect"));
 
             if (sessionId == null) {
                 request.redirect(redirectUri);
@@ -113,9 +113,9 @@ public class AuthenticationWebServer {
         });
 
 
-        this.http.get("/logout/all", request -> {
+        this.http.post("/logout/all", request -> {
             String sessionId = request.getCookies().get(SESSION_ID_COOKIE);
-            String redirectUri = Optional.ofNullable(request.getQuery().get("redirect")).orElse("/");
+            String redirectUri = safeRedirectUri(request.getQuery().get("redirect"));
 
             if (sessionId == null) {
                 request.redirect(redirectUri);
@@ -134,6 +134,11 @@ public class AuthenticationWebServer {
 
         this.http.start();
         this.logger.info("Webserver bound to " + this.http.getAddress());
+    }
+
+    private static String safeRedirectUri(@Nullable String uri) {
+        if (uri == null || !uri.startsWith("/") || uri.startsWith("//")) return "/";
+        return uri;
     }
 
     private String formatLoginPage(@NotNull String authToken) {
