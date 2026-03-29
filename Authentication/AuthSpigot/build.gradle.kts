@@ -8,8 +8,6 @@ group = "codes.antti.auth"
 version = project(":Authentication:AuthCore").version
 
 dependencies {
-    compileOnly(libs.spigot.api)
-    compileOnly(libs.jetbrains.annotations)
     implementation(project(":Authentication:AuthCore"))
 }
 

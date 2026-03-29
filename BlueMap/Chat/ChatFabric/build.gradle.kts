@@ -10,7 +10,7 @@ group = "codes.antti.auth.bluemap"
 version = project(":BlueMap:Chat:ChatCore").version
 
 dependencies {
-    "modCompileOnly"(libs.bluemap.api)
+    compileOnly(libs.bluemap.api)
     shadowImpl(project(":BlueMap:Chat:ChatCore"))
     shadowImpl(project(":Common:Fabric"))
 }

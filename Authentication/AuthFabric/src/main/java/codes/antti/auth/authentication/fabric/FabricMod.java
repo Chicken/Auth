@@ -9,10 +9,10 @@ import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -38,30 +38,30 @@ public class FabricMod implements DedicatedServerModInitializer, AuthPlatformAda
         core.init(this);
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-            dispatcher.register(CommandManager.literal("auth")
-                .then(CommandManager.argument("token", StringArgumentType.string())
+            dispatcher.register(Commands.literal("auth")
+                .then(Commands.argument("token", StringArgumentType.string())
                     .executes(ctx -> {
-                        ServerCommandSource source = ctx.getSource();
-                        ServerPlayerEntity player;
+                        CommandSourceStack source = ctx.getSource();
+                        ServerPlayer player;
                         try {
-                            player = source.getPlayerOrThrow();
+                            player = source.getPlayerOrException();
                         } catch (Exception e) {
-                            source.sendFeedback(() -> Text.literal("This command can only be used by players"), false);
+                            source.sendSuccess(() -> Component.literal("This command can only be used by players"), false);
                             return 0;
                         }
                         String token = StringArgumentType.getString(ctx, "token");
                         try {
-                            String msg = core.handleAuthCommand(player.getUuid(), player.getName().getString(), token);
+                            String msg = core.handleAuthCommand(player.getUUID(), player.getName().getString(), token);
                             if (msg != null) {
-                                source.sendFeedback(() -> Text.literal(msg), false);
+                                source.sendSuccess(() -> Component.literal(msg), false);
                                 return 1;
                             } else {
-                                source.sendFeedback(() -> Text.literal("Verification failed, check that you typed the authentication token correctly"), false);
+                                source.sendSuccess(() -> Component.literal("Verification failed, check that you typed the authentication token correctly"), false);
                                 return 0;
                             }
                         } catch (SQLException e) {
                             getLogger().severe("Failed to verify player session: " + e.getMessage());
-                            source.sendFeedback(() -> Text.literal("Something went wrong"), false);
+                            source.sendSuccess(() -> Component.literal("Something went wrong"), false);
                             return 0;
                         }
                     })

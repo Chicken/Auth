@@ -4,10 +4,9 @@ plugins {
 }
 
 group = "codes.antti.auth.bluemap.integration"
-version = "0.2.1"
+version = "0.3.0"
 
 dependencies {
-    compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.bluemap.api)
     implementation(project(":Common:Http"))
     implementation(libs.gson)

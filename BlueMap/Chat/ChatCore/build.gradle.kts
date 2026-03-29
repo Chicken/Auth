@@ -4,10 +4,9 @@ plugins {
 }
 
 group = "codes.antti.auth.bluemap.chat"
-version = "0.3.0"
+version = "0.4.0"
 
 dependencies {
-    compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.bluemap.api)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

@@ -4,10 +4,9 @@ plugins {
 }
 
 group = "codes.antti.auth.authentication"
-version = "0.4.0"
+version = "0.5.0"
 
 dependencies {
-    compileOnly(libs.jetbrains.annotations)
     implementation(project(":Common:Http"))
     implementation(project(":Common:Database"))
 }

@@ -7,7 +7,6 @@ group = "codes.antti.auth.common"
 version = "0.0.0"
 
 dependencies {
-    compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     implementation(libs.gson)

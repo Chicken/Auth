@@ -8,8 +8,6 @@ group = "codes.antti.auth.bluemap"
 version = project(":BlueMap:Integration:IntegrationCore").version
 
 dependencies {
-    compileOnly(libs.spigot.api)
-    compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.bluemap.api)
     implementation(project(":BlueMap:Integration:IntegrationCore"))
 }

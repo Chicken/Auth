@@ -5,7 +5,7 @@ import codes.antti.auth.bluemap.integration.IntegrationPlatformAdapter;
 import codes.antti.auth.common.fabric.FabricConfig;
 import codes.antti.auth.common.fabric.LogWrapper;
 import de.bluecolored.bluemap.api.BlueMapAPI;
-import net.fabricmc.api.ModInitializer;
+import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.LoggerFactory;
 
@@ -13,13 +13,13 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
-public class FabricMod implements ModInitializer, IntegrationPlatformAdapter {
+public class FabricMod implements DedicatedServerModInitializer, IntegrationPlatformAdapter {
     private static final Logger LOGGER = new LogWrapper(LoggerFactory.getLogger("BlueMap-Auth"), "[BlueMap-Auth]");
     private final IntegrationCore core = new IntegrationCore();
     private FabricConfig config;
 
     @Override
-    public void onInitialize() {
+    public void onInitializeServer() {
         Path configFile = FabricLoader.getInstance().getConfigDir().resolve("bluemap-auth/config.yml");
         try {
             this.config = new FabricConfig(configFile, "assets/bluemap-auth/config.yml");

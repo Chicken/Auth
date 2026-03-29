@@ -8,9 +8,15 @@ repositories {
     maven("https://repo.bluecolored.de/releases")
 }
 
+val libs = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
+
+dependencies {
+    compileOnly(libs.findLibrary("jetbrains.annotations").get())
+}
+
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 tasks.withType<JavaCompile>().configureEach {

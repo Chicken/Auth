@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "authentication",
-  "version": "0.4.0",
+  "version": "${version}",
   "name": "Authentication",
   "description": "Authentication of Minecraft players in web applications",
   "authors": ["Antti"],
@@ -9,8 +9,8 @@
     "server": ["codes.antti.auth.authentication.fabric.FabricMod"]
   },
   "depends": {
-    "fabricloader": ">=0.16.0",
-    "fabric-api": "*",
-    "minecraft": "~1.21"
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": ">=${fabric_api_version}",
+    "minecraft": "*"
   }
 }

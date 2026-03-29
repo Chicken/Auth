@@ -1,7 +1,7 @@
 name: Demo
 version: "${version}"
 main: codes.antti.auth.bluemap.demo.DemoPlugin
-api-version: "1.16"
+api-version: "${api_version}"
 author: Antti
 description: This is just a simple plugin for demo usage that lets users toggle some of their permissions nodes.
 depend:

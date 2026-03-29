@@ -1,7 +1,7 @@
 name: Authentication
 version: "${version}"
 main: codes.antti.auth.authentication.spigot.AuthenticationPlugin
-api-version: "1.16"
+api-version: "${api_version}"
 author: Antti
 description: Authentication of Minecraft players in web applications
 

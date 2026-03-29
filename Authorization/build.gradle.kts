@@ -3,12 +3,10 @@ plugins {
 }
 
 group = "codes.antti.auth"
-version = "0.3.0"
+version = "0.4.0"
 
 dependencies {
-    compileOnly(libs.spigot.api)
     compileOnly(libs.luckperms)
-    compileOnly(libs.jetbrains.annotations)
     implementation(project(":Common:Http"))
 }
 

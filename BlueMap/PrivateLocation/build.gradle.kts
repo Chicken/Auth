@@ -3,11 +3,9 @@ plugins {
 }
 
 group = "codes.antti.auth.bluemap"
-version = "0.2.0"
+version = "0.3.0"
 
 dependencies {
-    compileOnly(libs.spigot.api)
-    compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.bluemap.api)
     compileOnly(libs.luckperms)
     implementation(project(":Common:Http"))
