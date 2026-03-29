@@ -15,6 +15,7 @@ Prebuilt jars of everything can be found in GitHub releases.
 
 An authenticated BlueMap demo can be found at https://auth-dev.antti.codes/.
 The Minecraft server is also available at ip `auth-dev.antti.codes`.
+Fabric demo at https://auth-dev-fabric.antti.codes/ and `auth-dev-fabric.antti.codes`
 In the server you can use demo commands `/demo list` and `/demo toggle <node>` to change your permissions.
 This server doubles as my development server so it might sometimes be down or have features not yet on GitHub.
 
