@@ -31,6 +31,25 @@ If you can't create a simple reverse proxy on Nginx or set the dns A record on a
 The setup of the plugins itself is very easy, the difficulty mostly comes in the form of Nginx configuration.
 And if you want to use something else instead of Nginx you will have to figure that out yourself.
 
+### Requirements
+
+**All platforms:**
+- Java 25 or newer
+
+**Spigot / Paper:**
+- Spigot or Paper 1.16.5+
+
+**Fabric:**
+- Minecraft 26.1+
+- Fabric Loader 0.18.5+
+- Fabric API
+
+I will most likely be lazy about providing fabric for each version. You can go right ahead and build a custom one for your version.
+
+Not all plugins are available for both platforms. Authentication, BlueMap Integration and BlueMap Chat
+support both Spigot and Paper as well as Fabric. Authorization, PrivateLocation and PrivateMaps are
+Spigot/Paper only.
+
 ### Security considerations
 
 *These plugins are made available for free without warranty of any kind. The authors can't be held responsible for any damages.
@@ -87,16 +106,46 @@ This setting might also be useful if you are running more exotic hardware config
 
 The `port` setting is by default `8200` and should be self-explanatory for someone settings this up.
 
+`webserver_enabled` controls whether the HTTP server is started. Set to `false` if you only need the `/auth`
+in-game command on a server that shares a database with a primary server (see [Multi-server setup](#multi-server-setup)).
+
 The `optional_authentication` setting defines if users are forced to log in or not. When set to `true` the users
 can view the application without logging in and the application can choose to show its own guest mode and login button.
 
-`ìp_lock`, `session_length_days`, `auth_token_length` and `user_max_sessions` are optional customizations you can do for the authentication.
+`ip_lock`, `session_length_days`, `auth_token_length` and `user_max_sessions` are optional customizations you can do for the authentication.
 When `ip_lock` is true, sessions will be locked to one ip address and automatically log out if user's ip changes.
 `session_length_days` is the lifetime of a session in days.
 The default `31` means sessions expire after a month and then players need to reauthenticate.
 `auth_token_length` is the length of the random string given to players for the command to authenticate.
 `user_max_sessions` is the maximum amount of sessions a user can have at the same time. When the limit is reached,
 the oldest session will be removed.
+
+#### Database
+
+The `database_url` setting accepts a JDBC URL. SQLite, MySQL and MariaDB are supported. 
+Paper includes a driver for SQLite and MySQL. Other combinations require providing a driver.
+
+A driver can be provided in two ways:
+1. **Via a plugin or mod** - some server plugins or Fabric mods provide JDBC drivers
+2. **Via a standalone JAR** - download the driver jar and set both `driver_jar` and `driver_class`.
+   The `{data}` placeholder is replaced with the plugin/mod data directory path, which is
+   `plugins/Authentication/` on Spigot and `config/Authentication/` on Fabric.
+
+```yaml
+# Using a driver jar placed in the plugin data directory:
+database_url: "jdbc:mariadb://localhost:3306/bluemap_auth?user=example_user&password=example_pass"
+driver_jar: "{data}/mariadb-java-client-3.5.3.jar"
+driver_class: "org.mariadb.jdbc.Driver"
+```
+
+#### Multi-server setup
+
+Multiple Minecraft servers can share one Authentication database by all pointing to the same MySQL or MariaDB
+database. This lets players run `/auth <code>` on any of the servers.
+
+- One **primary server** runs the webserver (`webserver_enabled: true`) and is connected to Nginx.
+- Any number of **secondary servers** connected to the same database. Set `webserver_enabled: false` on these
+  as they only need the in-game command.
 
 #### Customizing
 
@@ -192,9 +241,15 @@ server {
     # When not authenticated, rewrite to login
     error_page 401 = @minecraft_login;
 
-    # Set a proxy header which contains the authenticated user's uuid
+    # Set proxy headers containing the authenticated user's info
+    auth_request_set $minecraft_loggedin $upstream_http_x_minecraft_loggedin;
     auth_request_set $minecraft_uuid $upstream_http_x_minecraft_uuid;
+    auth_request_set $minecraft_username $upstream_http_x_minecraft_username;
+
+    proxy_set_header x-minecraft-loggedin $minecraft_loggedin;
     proxy_set_header x-minecraft-uuid $minecraft_uuid;
+    proxy_set_header x-minecraft-username $minecraft_username;
+    
     proxy_set_header Host $host;
   }
 
