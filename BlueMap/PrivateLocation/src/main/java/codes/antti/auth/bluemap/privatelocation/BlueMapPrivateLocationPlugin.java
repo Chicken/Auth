@@ -78,7 +78,7 @@ public final class BlueMapPrivateLocationPlugin extends JavaPlugin {
                 }
                 canSeeEveryone(playerUuid).thenAcceptAsync((showAll) -> {
                     String response = getPlayersObject(api, map.get(), world.get(), UUID.fromString(playerUuid), showAll);
-                    request.json(response);
+                    request.setBody(response, "application/json");
                     try {
                         request.respond(200);
                     } catch (IOException ex) {
