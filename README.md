@@ -142,11 +142,6 @@ database. This lets players run `/auth <code>` on any of the servers.
 - Any number of **secondary servers** connected to the same database. Set `webserver_enabled: false` on these
   as they only need the in-game command.
 
-The BlueMap addons also support multi-server setups. See each addon's README for details:
-- [BlueMap/Integration](./BlueMap/Integration#multi-server-setup) - run an instance per server, route `/playerhead` by map ID
-- [BlueMap/PrivateLocation](./BlueMap/PrivateLocation#multi-server-setup) - run an instance per server, route each `players.json` by map ID
-- [BlueMap/PrivateMaps](./BlueMap/PrivateMaps#multi-server-setup) - single instance works for all servers
-
 #### Customizing
 
 The default login page is very bland.
