@@ -48,33 +48,35 @@ public class ChatCore {
     }
 
     public void onBlueMapEnabled(@NotNull ChatPlatformAdapter adapter, @NotNull BlueMapAPI api) {
-        try {
-            api.getWebApp().registerScript("assets/bluemap-chat.js");
-            api.getWebApp().registerStyle("assets/bluemap-chat.css");
+        if (adapter.isRegisterWebApp()) {
+            try {
+                api.getWebApp().registerScript("assets/bluemap-chat.js");
+                api.getWebApp().registerStyle("assets/bluemap-chat.css");
 
-            copyResource(api, "bluemap-chat.css");
-            copyResource(api, "minecraft.otf");
+                copyResource(api, "bluemap-chat.css");
+                copyResource(api, "minecraft.otf");
 
-            String integration;
-            try (InputStream in = Objects.requireNonNull(
-                ChatCore.class.getResourceAsStream("/assets/bluemap-chat/bluemap-chat.js"),
-                "bluemap-chat.js not found in classpath"
-            )) {
-                integration = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                String integration;
+                try (InputStream in = Objects.requireNonNull(
+                    ChatCore.class.getResourceAsStream("/assets/bluemap-chat/bluemap-chat.js"),
+                    "bluemap-chat.js not found in classpath"
+                )) {
+                    integration = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                }
+                integration = integration
+                    .replaceAll("\\{\\{web-chat-prefix}}", adapter.getWebChatPrefix())
+                    .replaceAll("\\{\\{max-message-count}}", String.valueOf(adapter.getMaxMessageCount()))
+                    .replaceAll("\\{\\{auth-path}}", adapter.getAuthPath());
+
+                Path chatPath = api.getWebApp().getWebRoot().resolve("assets/bluemap-chat.js");
+                Files.createDirectories(chatPath.getParent());
+                try (OutputStream out = Files.newOutputStream(chatPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+                    out.write(integration.getBytes(StandardCharsets.UTF_8));
+                }
+            } catch (IOException ex) {
+                adapter.getLogger().severe("Couldn't move chat resources to BlueMap!");
+                ex.printStackTrace();
             }
-            integration = integration
-                .replaceAll("\\{\\{web-chat-prefix}}", adapter.getWebChatPrefix())
-                .replaceAll("\\{\\{max-message-count}}", String.valueOf(adapter.getMaxMessageCount()))
-                .replaceAll("\\{\\{auth-path}}", adapter.getAuthPath());
-
-            Path chatPath = api.getWebApp().getWebRoot().resolve("assets/bluemap-chat.js");
-            Files.createDirectories(chatPath.getParent());
-            try (OutputStream out = Files.newOutputStream(chatPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-                out.write(integration.getBytes(StandardCharsets.UTF_8));
-            }
-        } catch (IOException ex) {
-            adapter.getLogger().severe("Couldn't move chat resources to BlueMap!");
-            ex.printStackTrace();
         }
 
         try {

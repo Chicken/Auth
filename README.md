@@ -128,7 +128,7 @@ A driver can be provided in two ways:
 
 ```yaml
 # Using a driver jar placed in the plugin data directory:
-database_url: "jdbc:mariadb://localhost:3306/bluemap_auth?user=example_user&password=example_pass"
+database_url: "jdbc:mariadb://localhost:3306/auth?user=example_user&password=example_pass"
 driver_jar: "{data}/mariadb-java-client-3.5.3.jar"
 driver_class: "org.mariadb.jdbc.Driver"
 ```

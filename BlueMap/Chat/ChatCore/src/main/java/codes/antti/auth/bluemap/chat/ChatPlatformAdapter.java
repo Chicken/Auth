@@ -10,6 +10,7 @@ public interface ChatPlatformAdapter {
     int getMaxMessageCount();
     String getWebChatPrefix();
     String getAuthPath();
+    boolean isRegisterWebApp();
     Logger getLogger();
     void broadcastToServer(String formattedMessage);
 }

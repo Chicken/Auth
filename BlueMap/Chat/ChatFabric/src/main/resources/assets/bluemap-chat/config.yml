@@ -7,3 +7,4 @@ read-only: false
 max-message-count: 100
 web-chat-prefix: "[web]"
 auth-path: "/authentication-outpost/"
+register-web-app: true

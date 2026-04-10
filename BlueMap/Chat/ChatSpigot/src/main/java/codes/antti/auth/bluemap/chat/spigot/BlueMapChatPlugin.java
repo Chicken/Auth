@@ -85,5 +85,6 @@ public final class BlueMapChatPlugin extends JavaPlugin implements Listener, Cha
     @Override public int getMaxMessageCount() { return getConfig().getInt("max-message-count", 100); }
     @Override public String getWebChatPrefix() { return getConfig().getString("web-chat-prefix", "[web]"); }
     @Override public String getAuthPath() { return getConfig().getString("auth-path", "/authentication-outpost/"); }
+    @Override public boolean isRegisterWebApp() { return getConfig().getBoolean("register-web-app", true); }
     @Override public void broadcastToServer(String formattedMessage) { getServer().broadcastMessage(formattedMessage); }
 }

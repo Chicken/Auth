@@ -144,7 +144,7 @@ void async function() {
     chatInput.addEventListener("keydown", (e) => {
         e.stopPropagation();
         if (e.key === "Enter") {
-            fetch("./addons/chat/send", {
+            fetch("./addons/chat/" + currentMapId + "/send", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -173,9 +173,7 @@ void async function() {
         chatMessages.querySelectorAll(".empty-message").forEach(el => el.remove());
         const message = document.createElement("div");
         message.innerText = str;
-        if (className) {
-            message.className = className;
-        }
+        if (className) message.className = className;
         chatMessages.insertBefore(message, chatMessages.firstChild);
         const pc = message.cloneNode(true);
         messagesPopup.insertBefore(pc, messagesPopup.firstChild);
@@ -183,12 +181,11 @@ void async function() {
             pc.classList.add("fade-out");
             setTimeout(() => {
                 messagesPopup.removeChild(pc);
-
                 if (messagesPopup.children.length === 0 && !chatExpanded) {
                     root.classList.add("no-messages");
                 }
             }, 500)
-        }, 5000)
+        }, 10_000)
         if (chatMessages.children.length > mmc) {
             chatMessages.removeChild(chatMessages.lastChild);
         }
@@ -197,46 +194,60 @@ void async function() {
 
     const wcp = "{{web-chat-prefix}}";
 
-    const e = new EventSource("./addons/chat/stream");
-    e.onerror = () => {
-        setupChatLoggedOut();
-        if (chatIsOpen) toggleChat();
-    };
-    e.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        switch (data.type) {
-            case "settings": {
-                if (data.readOnly) {
-                    console.log("[Chat/info] Chat is in read-only mode");
-                    chatInputWrapper.classList.add("read-only");
-                    chatInput.placeholder = "";
-                    chatInput.disabled = true;
+    let currentMapId = null;
+    let eventSource = null;
+
+    function connectToMap(mapId) {
+        if (eventSource) { eventSource.close(); eventSource = null; }
+        if (!mapId) return;
+        currentMapId = mapId;
+        eventSource = new EventSource("./addons/chat/" + mapId + "/stream");
+        eventSource.onerror = () => {
+            setupChatLoggedOut();
+            if (chatIsOpen) toggleChat();
+        };
+        eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            switch (data.type) {
+                case "settings": {
+                    if (data.readOnly) {
+                        console.log("[Chat/info] Chat is in read-only mode");
+                        chatInputWrapper.classList.add("read-only");
+                        chatInput.placeholder = "";
+                        chatInput.disabled = true;
+                    }
+                    if (!chatIsOpen) toggleChat()
+                    break;
                 }
-                if (!chatIsOpen) toggleChat()
-                break;
+                case "chat": {
+                    addMessage(data.username + ":" + nbps + data.message);
+                    break;
+                }
+                case "webchat": {
+                    addMessage(wcp + nbps + data.username + ":" + nbps + data.message);
+                    break;
+                }
+                case "join": {
+                    addMessage(data.username + " joined", "joinquit");
+                    break;
+                }
+                case "quit": {
+                    addMessage(data.username + " left", "joinquit");
+                    break;
+                }
+                case "death": {
+                    addMessage(data.message, "death");
+                    break;
+                }
+                default:
+                    console.warn("[Chat/warn] Unknown event type", data);
             }
-            case "chat": {
-                addMessage(data.username + ":" + nbps + data.message);
-                break;
-            }
-            case "webchat": {
-                addMessage(wcp + nbps + data.username + ":" + nbps + data.message);
-                break;
-            }
-            case "join": {
-                addMessage(data.username + " joined", "joinquit");
-                break;
-            }
-            case "quit": {
-                addMessage(data.username + " left", "joinquit");
-                break;
-            }
-            case "death": {
-                addMessage(data.message, "death");
-                break;
-            }
-            default:
-                console.warn("[Chat/warn] Unknown event type", data);
-        }
+        };
     }
+
+    bluemap.events.addEventListener("bluemapMapChanged", (event) => {
+        connectToMap(event.detail.map.data.id);
+        addMessage('Viewing "' + event.detail.map.data.name + '"', "map-change");
+    });
+    connectToMap(bluemap.mapViewer.data.map.id);
 }();

@@ -90,6 +90,7 @@ public class FabricMod implements DedicatedServerModInitializer, ChatPlatformAda
     @Override public int getMaxMessageCount() { return config.getInt("max-message-count", 100); }
     @Override public String getWebChatPrefix() { return config.getString("web-chat-prefix", "[web]"); }
     @Override public String getAuthPath() { return config.getString("auth-path", "/authentication-outpost/"); }
+    @Override public boolean isRegisterWebApp() { return config.getBoolean("register-web-app", true); }
     @Override public Logger getLogger() { return LOGGER; }
     @Override public void broadcastToServer(String formattedMessage) {
         if (server != null) {

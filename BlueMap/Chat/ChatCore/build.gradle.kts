@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "codes.antti.auth.bluemap.chat"
-version = "0.4.0"
+version = "0.5.0"
 
 dependencies {
     compileOnly(libs.bluemap.api)

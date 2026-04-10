@@ -15,8 +15,8 @@ user_max_sessions: 3
 # Or you can provide the jar and class manually.
 # Examples (depends on the driver):
 #   jdbc:sqlite:{data}/db.sqlite
-#   jdbc:mysql://example_user:example_pass@localhost:3306/bluemap_auth
-#   jdbc:mariadb://localhost:3306/bluemap_auth?user=example_user&password=example_pass
+#   jdbc:mysql://example_user:example_pass@localhost:3306/auth
+#   jdbc:mariadb://localhost:3306/auth?user=example_user&password=example_pass
 database_url: "jdbc:sqlite:{data}/db.sqlite"
 # driver_jar: "{data}/mariadb-java-client-3.5.3.jar"
 # driver_class: "org.mariadb.jdbc.Driver"

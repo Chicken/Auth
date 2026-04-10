@@ -70,6 +70,11 @@
     color: #fbd726;
 }
 
+#chat-messages > .map-change, #chat-messages-popup > .map-change {
+    color: #ababab;
+    font-style: italic;
+}
+
 #chat-input-wrapper {
     grid-row: 2;
     width: 100%;
