@@ -1,0 +1,11 @@
+nodes:
+  - privatelocation.seeall
+  - auth.maps.world_paper1
+  - auth.maps.world_the_nether_paper1
+  - auth.maps.world_the_end_paper1
+  - auth.maps.world_paper2
+  - auth.maps.world_the_nether_paper2
+  - auth.maps.world_the_end_paper2
+  - auth.maps.world_fabric
+  - auth.maps.world_the_nether_fabric
+  - auth.maps.world_the_end_fabric

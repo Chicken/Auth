@@ -1,0 +1,104 @@
+services:
+
+  mariadb:
+    image: mariadb:12
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_USER: dev
+      MARIADB_PASSWORD: dev
+    volumes:
+      - ./mariadb/data:/var/lib/mysql
+      - ./mariadb/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "127.0.0.1:8000:80/tcp"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  paper1:
+    image: itzg/minecraft-server:latest
+    restart: always
+    tty: true
+    stdin_open: true
+    environment:
+      TYPE: PAPER
+      VERSION: "26.1.1"
+      EULA: "TRUE"
+      MEMORY: "4G"
+      MODRINTH_PROJECTS: |
+        bluemap
+        luckperms
+    ports:
+      - "127.0.0.1:25501:25565/tcp" # Minecraft
+      # for debugging
+      - "127.0.0.1:8101:8100/tcp" # BlueMap
+      - "127.0.0.1:8201:8200/tcp" # Authentication
+      - "127.0.0.1:8401:8400/tcp" # Integration
+      - "127.0.0.1:8501:8500/tcp" # PrivateLocation
+      - "127.0.0.1:8601:8600/tcp" # PrivateMaps
+      - "127.0.0.1:8801:8800/tcp" # Chat
+    volumes:
+      - ./paper1:/data
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  paper2:
+    image: itzg/minecraft-server:latest
+    restart: always
+    tty: true
+    stdin_open: true
+    environment:
+      TYPE: PAPER
+      VERSION: "26.1.1"
+      EULA: "TRUE"
+      MEMORY: "4G"
+      MODRINTH_PROJECTS: |
+        bluemap
+        luckperms
+    ports:
+      - "127.0.0.1:25502:25565/tcp" # Minecraft
+      # for debugging
+      - "127.0.0.1:8402:8400/tcp" # Integration
+      - "127.0.0.1:8502:8500/tcp" # PrivateLocation
+      - "127.0.0.1:8802:8800/tcp" # Chat
+    volumes:
+      - ./paper2:/data
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  fabric:
+    image: itzg/minecraft-server:latest
+    restart: always
+    tty: true
+    stdin_open: true
+    environment:
+      TYPE: FABRIC
+      VERSION: "26.1.1"
+      EULA: "TRUE"
+      MEMORY: "4G"
+      MODRINTH_PROJECTS: |
+        bluemap
+        luckperms
+        fabric-api
+        vanilla-permissions
+    ports:
+      - "127.0.0.1:25503:25565/tcp" # Minecraft
+      # for debugging
+      - "127.0.0.1:8403:8400/tcp" # Integration
+      - "127.0.0.1:8803:8800/tcp" # Chat
+    volumes:
+      - ./fabric:/data
+    depends_on:
+      mariadb:
+        condition: service_healthy

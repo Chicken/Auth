@@ -1,0 +1,16 @@
+mariadb/data
+
+bStats
+spark
+translations
+
+fabric/*
+!fabric/config
+
+paper1/*
+!paper1/plugins
+paper1/plugins/*.jar
+
+paper2/*
+!paper2/plugins
+paper2/plugins/*.jar
