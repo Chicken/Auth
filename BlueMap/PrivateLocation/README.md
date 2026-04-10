@@ -21,6 +21,25 @@ Permissions checks use a cache so permissions changes require about a minute to 
 - `/players/$map` returns BlueMap compatible players JSON for the map with only the current player
 (or all with the bypass permission).
 
+## Multi-server setup
+
+Run one PrivateLocation instance per Minecraft server, each on a different port.
+In Nginx, route each map's `players.json` to the instance on the server that owns that map.
+
+Replace the single-server location block with one block per server:
+
+```nginx
+  # Server A maps
+  location ~ ^/maps/(server-a-map-1|server-a-map-2)/live/players.json {
+    proxy_pass http://127.0.0.1:8500/players/$1;
+  }
+
+  # Server B maps
+  location ~ ^/maps/(server-b-map-1|server-b-map-2)/live/players.json {
+    proxy_pass http://127.0.0.1:8501/players/$1;
+  }
+```
+
 ## Nginx configuration
 
 See [the BlueMap Integration example Nginx configuration](https://github.com/Chicken/Auth/tree/master/BlueMap/Integration#example-nginx).

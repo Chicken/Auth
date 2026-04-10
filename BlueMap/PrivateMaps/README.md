@@ -24,6 +24,14 @@ Permissions checks use a cache so permissions changes require about a minute to 
 when using optional authentication. `x-original-uri` should contain the path user is trying to access.
 Map id is parsed from the path and permissions are compared against the player uuid. Returns 200 if user has permission, 403 otherwise.
 
+## Multi-server setup
+
+A single PrivateMaps instance is sufficient for multiple servers.
+Permission nodes (`auth.maps.$map`) have no BlueMap dependency, so permissions work the same regardless of which server a map lives on.
+Just configure the permissions on that server or use network-wide permission management.
+
+Point `bluemap-url` at the main BlueMap URL which serves all the maps.
+
 ## Nginx configuration
 
 See [the BlueMap Integration example Nginx configuration](https://github.com/Chicken/Auth/tree/master/BlueMap/Integration#example-nginx).

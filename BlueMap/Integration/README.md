@@ -15,8 +15,10 @@ The `ip` and `port` are the same as with the main projects in this repository. T
 
 *This section is only relevant for advanced usage.*
 
-`/whoami` is the only endpoint provided by the addon. It returns an empty JSON object for unauthenticated users and
-an object with uuid and username for authenticated users.
+`/whoami` returns an empty JSON object for unauthenticated users and an object with uuid and username for authenticated users.
+
+`/playerhead/$map` returns a redirect (301) to the BlueMap asset URL for the logged-in player's head on the given map.
+Requires the user to be authenticated (returns 400 otherwise). Returns 404 if the map is not known to this instance.
 
 ## Addon API
 
@@ -45,6 +47,30 @@ function getAuthStatus() {
     });
 }
 ```
+
+## Multi-server setup
+
+Run one Integration instance per Minecraft server, each on a different port.
+
+`/whoami` only reads Nginx-forwarded headers and is server-agnostic, choose on server to use.
+`/playerhead/$map` must be served by the instance on the server that owns that map.
+Route by map ID in Nginx:
+
+```nginx
+# Server B Integration
+location ~ ^/addons/integration/playerhead/(server-b-map-1|server-b-map-2)$ {
+    proxy_pass http://127.0.0.1:8401/playerhead/$1;
+    proxy_buffering off;
+}
+
+# Server A Integration, handles /whoami and Server A map playerhead
+location /addons/integration/ {
+    proxy_pass http://127.0.0.1:8400/;
+    proxy_buffering off;
+}
+```
+
+Add one regex block per additional server with its map IDs.
 
 ## Example Nginx
 
