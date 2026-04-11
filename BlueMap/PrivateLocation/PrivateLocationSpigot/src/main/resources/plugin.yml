@@ -1,0 +1,14 @@
+name: BlueMap-PrivateLocation
+version: "${version}"
+main: codes.antti.auth.bluemap.privatelocation.spigot.BlueMapPrivateLocationPlugin
+api-version: "${api_version}"
+author: Antti
+description: Prevent seeing other players' locations on the map while still seeing your own.
+depend:
+  - BlueMap
+  - LuckPerms
+
+permissions:
+  privatelocation.seeall:
+    description: Allows seeing all players' locations on the map.
+    default: false

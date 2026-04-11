@@ -1,4 +1,5 @@
 nodes:
+  - auth.map
   - privatelocation.seeall
   - auth.maps.world_paper1
   - auth.maps.world_the_nether_paper1

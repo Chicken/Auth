@@ -1,6 +1,6 @@
 ip: "0.0.0.0"
 port: 8200
-webserver_enabled: false
+webserver_enabled: true
 
 ip_lock: true
 optional_authentication: true

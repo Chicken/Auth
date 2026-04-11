@@ -16,7 +16,9 @@ include(":Authentication:AuthCore")
 proj("Authentication-Spigot", "Authentication/AuthSpigot")
 proj("Authentication-Fabric", "Authentication/AuthFabric")
 
-proj("Authorization", "Authorization")
+include(":Authorization:AuthorizationCore")
+proj("Authorization-Spigot", "Authorization/AuthorizationSpigot")
+proj("Authorization-Fabric", "Authorization/AuthorizationFabric")
 
 proj("BlueMap-Demo", "BlueMap/Demo")
 
@@ -24,8 +26,13 @@ include(":BlueMap:Integration:IntegrationCore")
 proj("BlueMap-Auth-Spigot", "BlueMap/Integration/IntegrationSpigot")
 proj("BlueMap-Auth-Fabric", "BlueMap/Integration/IntegrationFabric")
 
-proj("BlueMap-PrivateLocation", "BlueMap/PrivateLocation")
-proj("BlueMap-PrivateMaps", "BlueMap/PrivateMaps")
+include(":BlueMap:PrivateLocation:PrivateLocationCore")
+proj("BlueMap-PrivateLocation-Spigot", "BlueMap/PrivateLocation/PrivateLocationSpigot")
+proj("BlueMap-PrivateLocation-Fabric", "BlueMap/PrivateLocation/PrivateLocationFabric")
+
+include(":BlueMap:PrivateMaps:PrivateMapsCore")
+proj("BlueMap-PrivateMaps-Spigot", "BlueMap/PrivateMaps/PrivateMapsSpigot")
+proj("BlueMap-PrivateMaps-Fabric", "BlueMap/PrivateMaps/PrivateMapsFabric")
 
 include(":BlueMap:Chat:ChatCore")
 proj("BlueMap-Chat-Spigot", "BlueMap/Chat/ChatSpigot")

@@ -46,4 +46,16 @@ public class FabricConfig {
         if (val instanceof String) return Boolean.parseBoolean((String) val);
         return def;
     }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, String> getStringMap(String key) {
+        Object val = data.get(key);
+        if (val instanceof Map) {
+            Map<?, ?> raw = (Map<?, ?>) val;
+            Map<String, String> result = new HashMap<>();
+            raw.forEach((k, v) -> { if (k != null && v != null) result.put(k.toString(), v.toString()); });
+            return result;
+        }
+        return new HashMap<>();
+    }
 }

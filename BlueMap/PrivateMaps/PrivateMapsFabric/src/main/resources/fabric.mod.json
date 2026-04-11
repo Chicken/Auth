@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "bluemap-privatemaps",
+  "version": "${version}",
+  "name": "BlueMap Private Maps",
+  "description": "Add permissions nodes for maps.",
+  "authors": ["Antti"],
+  "entrypoints": {
+    "server": ["codes.antti.auth.bluemap.privatemaps.fabric.FabricMod"]
+  },
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": ">=${fabric_api_version}",
+    "minecraft": "*",
+    "luckperms": "*"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "authorization",
+  "version": "${version}",
+  "name": "Authorization",
+  "description": "Authorization of authenticated Minecraft players in web applications",
+  "authors": ["Antti"],
+  "entrypoints": {
+    "server": ["codes.antti.auth.authorization.fabric.FabricMod"]
+  },
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": ">=${fabric_api_version}",
+    "minecraft": "*",
+    "luckperms": "*"
+  }
+}
