@@ -41,10 +41,6 @@ And if you want to use something else instead of Nginx you will have to figure t
 
 I will most likely be lazy about providing fabric for each version. You can go right ahead and build a custom one for your version.
 
-Not all plugins are available for both platforms. Authentication, BlueMap Integration and BlueMap Chat
-support both Spigot and Paper as well as Fabric. Authorization, PrivateLocation and PrivateMaps are
-Spigot/Paper only.
-
 ### Security considerations
 
 *These plugins are made available for free without warranty of any kind. The authors can't be held responsible for any damages.

@@ -1,0 +1,9 @@
+ip: "0.0.0.0"
+port: 8700
+
+auth-path: "/authentication-outpost/"
+register-web-app: false
+
+database_url: "jdbc:mariadb://mariadb:3306/marker_editor?user=dev&password=dev"
+driver_jar: "{data}/../../mariadb-jdbc.jar"
+driver_class: "org.mariadb.jdbc.Driver"

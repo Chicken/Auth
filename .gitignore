@@ -32,3 +32,8 @@ bin/
 Thumbs.db
 [Dd]esktop.ini
 $RECYCLE.BIN/
+
+bluemap-source
+
+BlueMap/MarkerEditor/web/node_modules/
+BlueMap/MarkerEditor/web/dist/

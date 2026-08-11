@@ -19,7 +19,8 @@ public class SqliteDatabase implements Database {
 
     public SqliteDatabase(@NotNull String path, @NotNull Driver driver) throws SQLException {
         File file = new File(path);
-        if (!file.getParentFile().exists() && !file.getParentFile().mkdirs()) {
+        File parent = file.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
             throw new RuntimeException("Couldn't create data folder");
         }
         String url = "jdbc:sqlite:" + path;
@@ -35,6 +36,7 @@ public class SqliteDatabase implements Database {
     private static void applyPragmas(Connection conn) throws SQLException {
         try (Statement stmt = conn.createStatement()) {
             stmt.execute("PRAGMA journal_mode=WAL");
+            stmt.execute("PRAGMA foreign_keys=ON");
             stmt.execute("PRAGMA synchronous=FULL");
             stmt.execute("PRAGMA busy_timeout=5000");
             stmt.execute("PRAGMA cache_size=-4096");

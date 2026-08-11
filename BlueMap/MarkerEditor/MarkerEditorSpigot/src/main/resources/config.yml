@@ -1,0 +1,12 @@
+ip: "127.0.0.1"
+port: 8700
+
+auth-path: "/authentication-outpost/"
+register-web-app: true
+
+# Supports SQLite and MySQL/MariaDB.
+# {data} is replaced with the plugin data directory.
+database_url: "jdbc:sqlite:{data}/markers.db"
+driver_class: "org.sqlite.JDBC"
+# driver_jar: "{data}/mariadb-java-client-3.5.8.jar"
+# For an external MariaDB driver, change driver_class to "org.mariadb.jdbc.Driver".

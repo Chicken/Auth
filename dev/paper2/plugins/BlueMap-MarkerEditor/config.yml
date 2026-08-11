@@ -1,0 +1,8 @@
+ip: "0.0.0.0"
+port: 8700
+
+auth-path: "/authentication-outpost/"
+register-web-app: false
+
+database_url: "jdbc:mysql://dev:dev@mariadb:3306/marker_editor"
+# Paper provides the MySQL driver used by this URL.

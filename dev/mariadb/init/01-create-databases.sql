@@ -1,9 +1,11 @@
 CREATE DATABASE IF NOT EXISTS auth CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE DATABASE IF NOT EXISTS luckperms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE DATABASE IF NOT EXISTS bluemap CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS marker_editor CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 GRANT ALL PRIVILEGES ON auth.* TO 'dev'@'%';
 GRANT ALL PRIVILEGES ON luckperms.* TO 'dev'@'%';
 GRANT ALL PRIVILEGES ON bluemap.* TO 'dev'@'%';
+GRANT ALL PRIVILEGES ON marker_editor.* TO 'dev'@'%';
 
 FLUSH PRIVILEGES;

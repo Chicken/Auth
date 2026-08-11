@@ -46,6 +46,7 @@ services:
       - "127.0.0.1:8401:8400/tcp" # Integration
       - "127.0.0.1:8501:8500/tcp" # PrivateLocation
       - "127.0.0.1:8601:8600/tcp" # PrivateMaps
+      - "127.0.0.1:8701:8700/tcp" # MarkerEditor
       - "127.0.0.1:8801:8800/tcp" # Chat
     volumes:
       - ./paper1:/data
@@ -71,6 +72,7 @@ services:
       # for debugging
       - "127.0.0.1:8402:8400/tcp" # Integration
       - "127.0.0.1:8502:8500/tcp" # PrivateLocation
+      - "127.0.0.1:8702:8700/tcp" # MarkerEditor
       - "127.0.0.1:8802:8800/tcp" # Chat
     volumes:
       - ./paper2:/data
@@ -101,6 +103,7 @@ services:
       - "127.0.0.1:8403:8400/tcp" # Integration
       - "127.0.0.1:8503:8500/tcp" # PrivateLocation
       - "127.0.0.1:8603:8600/tcp" # PrivateMaps
+      - "127.0.0.1:8703:8700/tcp" # MarkerEditor
       - "127.0.0.1:8803:8800/tcp" # Chat
     volumes:
       - ./fabric:/data

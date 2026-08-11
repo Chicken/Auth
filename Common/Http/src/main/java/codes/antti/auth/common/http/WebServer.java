@@ -35,6 +35,18 @@ public final class WebServer {
         this.genericContextCreator(List.of("POST"), path, handler);
     }
 
+    public void put(@NotNull String path, @NotNull Handler handler) {
+        this.genericContextCreator(List.of("PUT"), path, handler);
+    }
+
+    public void delete(@NotNull String path, @NotNull Handler handler) {
+        this.genericContextCreator(List.of("DELETE"), path, handler);
+    }
+
+    public void route(@NotNull String path, @NotNull Handler handler, @NotNull String... methods) {
+        this.genericContextCreator(List.of(methods), path, handler);
+    }
+
     private void genericContextCreator(@NotNull List<String> methods, @NotNull String path, @NotNull Handler handler) {
         this.internal.createContext(path.endsWith("*") ? path.substring(0, path.length() - 1) : path, httpExchange -> {
             Request request = new Request(httpExchange);

@@ -9,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.URLDecoder;
@@ -75,6 +77,32 @@ public class Request {
         return new String(this.httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
     }
 
+    public String getBodyString(int maxBytes) throws IOException, HTTPError {
+        if (maxBytes < 0) throw new IllegalArgumentException("maxBytes must not be negative");
+
+        String contentLength = getHeader("Content-Length");
+        if (contentLength != null) {
+            try {
+                if (Long.parseLong(contentLength) > maxBytes)
+                    throw new HTTPError(413, "Request body is too large");
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        try (InputStream in = this.httpExchange.getRequestBody();
+             ByteArrayOutputStream out = new ByteArrayOutputStream(Math.min(maxBytes, 8192))) {
+            byte[] buffer = new byte[8192];
+            int total = 0;
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                total += read;
+                if (total > maxBytes) throw new HTTPError(413, "Request body is too large");
+                out.write(buffer, 0, read);
+            }
+            return out.toString(StandardCharsets.UTF_8);
+        }
+    }
+
     public JsonElement getBodyJson() throws HTTPError {
         return getBodyAs(JsonElement.class);
     }
@@ -87,6 +115,17 @@ public class Request {
         } catch (Exception ex) {
             if (ex instanceof HTTPError) throw (HTTPError) ex;
             else throw new HTTPError(400, "Invalid data");
+        }
+    }
+
+    public <T> T getBodyAs(Class<T> clazz, int maxBytes) throws HTTPError {
+        try {
+            T body = gson.fromJson(getBodyString(maxBytes), clazz);
+            if (body == null) throw new HTTPError(400, "Invalid data");
+            return body;
+        } catch (Exception ex) {
+            if (ex instanceof HTTPError error) throw error;
+            throw new HTTPError(400, "Invalid data");
         }
     }
 

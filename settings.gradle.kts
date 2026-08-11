@@ -38,6 +38,10 @@ include(":BlueMap:Chat:ChatCore")
 proj("BlueMap-Chat-Spigot", "BlueMap/Chat/ChatSpigot")
 proj("BlueMap-Chat-Fabric", "BlueMap/Chat/ChatFabric")
 
+include(":BlueMap:MarkerEditor:MarkerEditorCore")
+proj("BlueMap-MarkerEditor-Spigot", "BlueMap/MarkerEditor/MarkerEditorSpigot")
+proj("BlueMap-MarkerEditor-Fabric", "BlueMap/MarkerEditor/MarkerEditorFabric")
+
 fun proj(name: String, dir: String) {
     val project = ":$name"
     include(project)

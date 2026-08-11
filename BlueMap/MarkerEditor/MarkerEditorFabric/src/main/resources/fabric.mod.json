@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "bluemap-marker-editor",
+  "version": "${version}",
+  "name": "BlueMap MarkerEditor",
+  "description": "In-browser marker editor for BlueMap",
+  "authors": ["Antti"],
+  "entrypoints": {
+    "server": ["codes.antti.auth.bluemap.markereditor.fabric.FabricMod"]
+  },
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": ">=${fabric_api_version}",
+    "minecraft": "*",
+    "bluemap": "*",
+    "luckperms": "*"
+  }
+}

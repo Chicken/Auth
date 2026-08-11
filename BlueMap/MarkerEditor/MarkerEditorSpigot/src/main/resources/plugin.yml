@@ -1,0 +1,13 @@
+name: BlueMap-MarkerEditor
+version: "${version}"
+main: codes.antti.auth.bluemap.markereditor.spigot.BlueMapMarkerEditorPlugin
+api-version: "${api_version}"
+author: Antti
+description: In-browser marker editor for BlueMap
+depend:
+  - BlueMap
+  - LuckPerms
+permissions:
+  bluemap.markereditor.global:
+    description: Edit global markers managed by BlueMap MarkerEditor
+    default: false
