@@ -31,7 +31,7 @@ services:
     stdin_open: true
     environment:
       TYPE: PAPER
-      VERSION: "26.1.1"
+      VERSION: "26.2"
       EULA: "TRUE"
       MEMORY: "2G"
       MODRINTH_PROJECTS: |
@@ -61,7 +61,7 @@ services:
     stdin_open: true
     environment:
       TYPE: PAPER
-      VERSION: "26.1.1"
+      VERSION: "26.2"
       EULA: "TRUE"
       MEMORY: "2G"
       MODRINTH_PROJECTS: |
@@ -87,7 +87,7 @@ services:
     stdin_open: true
     environment:
       TYPE: FABRIC
-      VERSION: "26.1.1"
+      VERSION: "26.2"
       EULA: "TRUE"
       MEMORY: "2G"
       MODRINTH_PROJECTS: |
