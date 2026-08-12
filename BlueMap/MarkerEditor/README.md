@@ -1,8 +1,8 @@
 # Auth/BlueMap/MarkerEditor
 
-> **Warning** <br>
-> This one is vibecoded slop that hasn't been properly reviewed or tested.
-> It was made as a Proof of Concept and will become obsolete when BlueMap's new webapp arrives.
+> [!CAUTION]
+> This one is vibecoded slop that hasn't been properly reviewed or tested.  
+> It was made as a Proof of Concept and will become non-functional when BlueMap's new webapp arrives.
 
 An in-browser marker editor for BlueMap. It supports marker sets and all marker types exposed by the BlueMap Java API: POI, HTML, line, shape, and extrude markers.
 
